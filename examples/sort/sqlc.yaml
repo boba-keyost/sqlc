@@ -1,0 +1,14 @@
+version: '2'
+cloud:
+  project: "01HAQMMECEYQYKFJN8MP16QC41"
+sql:
+- name: mysql
+  schema: mysql/schema.sql
+  queries: mysql/query.sql
+  engine: mysql
+  database:
+    uri: "${VET_TEST_EXAMPLES_MYSQL_SORT}"
+  gen:
+    go:
+      package: sort
+      out: mysql
