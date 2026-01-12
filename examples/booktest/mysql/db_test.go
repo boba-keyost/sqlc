@@ -10,7 +10,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func TestBooks(t *testing.T) {
@@ -44,28 +44,32 @@ func TestBooks(t *testing.T) {
 
 	// save first book
 	now := time.Now()
-	_, err = tq.CreateBook(ctx, CreateBookParams{
-		AuthorID:  int32(authorID),
-		Isbn:      "1",
-		Title:     "my book title",
-		BookType:  BooksBookTypeFICTION,
-		Yr:        2016,
-		Available: now,
-	})
+	_, err = tq.CreateBook(
+		ctx, CreateBookParams{
+			AuthorID:  int32(authorID),
+			Isbn:      "1",
+			Title:     "my book title",
+			BookType:  BooksBookTypeFICTION,
+			Yr:        2016,
+			Available: now,
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// save second book
-	result, err = tq.CreateBook(ctx, CreateBookParams{
-		AuthorID:  int32(authorID),
-		Isbn:      "2",
-		Title:     "the second book",
-		BookType:  BooksBookTypeFICTION,
-		Yr:        2016,
-		Available: now,
-		Tags:      "cool,unique",
-	})
+	result, err = tq.CreateBook(
+		ctx, CreateBookParams{
+			AuthorID:  int32(authorID),
+			Isbn:      "2",
+			Title:     "the second book",
+			BookType:  BooksBookTypeFICTION,
+			Yr:        2016,
+			Available: now,
+			Tags:      "cool,unique",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,39 +79,45 @@ func TestBooks(t *testing.T) {
 	}
 
 	// update the title and tags
-	err = tq.UpdateBook(ctx, UpdateBookParams{
-		BookID: int32(bookOneID),
-		Title:  "changed second title",
-		Tags:   "cool,disastor",
-	})
+	err = tq.UpdateBook(
+		ctx, UpdateBookParams{
+			BookID: int32(bookOneID),
+			Title:  "changed second title",
+			Tags:   "cool,disastor",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// save third book
-	_, err = tq.CreateBook(ctx, CreateBookParams{
-		AuthorID:  int32(authorID),
-		Isbn:      "3",
-		Title:     "the third book",
-		BookType:  BooksBookTypeFICTION,
-		Yr:        2001,
-		Available: now,
-		Tags:      "cool",
-	})
+	_, err = tq.CreateBook(
+		ctx, CreateBookParams{
+			AuthorID:  int32(authorID),
+			Isbn:      "3",
+			Title:     "the third book",
+			BookType:  BooksBookTypeFICTION,
+			Yr:        2001,
+			Available: now,
+			Tags:      "cool",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// save fourth book
-	result, err = tq.CreateBook(ctx, CreateBookParams{
-		AuthorID:  int32(authorID),
-		Isbn:      "4",
-		Title:     "4th place finisher",
-		BookType:  BooksBookTypeNONFICTION,
-		Yr:        2011,
-		Available: now,
-		Tags:      "other",
-	})
+	result, err = tq.CreateBook(
+		ctx, CreateBookParams{
+			AuthorID:  int32(authorID),
+			Isbn:      "4",
+			Title:     "4th place finisher",
+			BookType:  BooksBookTypeNONFICTION,
+			Yr:        2011,
+			Available: now,
+			Tags:      "other",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,26 +133,36 @@ func TestBooks(t *testing.T) {
 	}
 
 	// upsert, changing ISBN and title
-	err = dq.UpdateBookISBN(ctx, UpdateBookISBNParams{
-		BookID: int32(bookThreeID),
-		Isbn:   "NEW ISBN",
-		Title:  "never ever gonna finish, a quatrain",
-		Tags:   "someother",
-	})
+	err = dq.UpdateBookISBN(
+		ctx, UpdateBookISBNParams{
+			BookID: int32(bookThreeID),
+			Isbn:   "NEW ISBN",
+			Title:  "never ever gonna finish, a quatrain",
+			Tags:   "someother",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// retrieve first book
-	books0, err := dq.BooksByTitleYear(ctx, BooksByTitleYearParams{
-		Title: "my book title",
-		Yr:    2016,
-	})
+	books0, err := dq.BooksByTitleYear(
+		ctx, BooksByTitleYearParams{
+			Title: "my book title",
+			Yr:    2016,
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, book := range books0 {
-		t.Logf("Book %d (%s): %s available: %s\n", book.BookID, book.BookType, book.Title, book.Available.Format(time.RFC822Z))
+		t.Logf(
+			"Book %d (%s): %s available: %s\n",
+			book.BookID,
+			book.BookType,
+			book.Title,
+			book.Available.Format(time.RFC822Z),
+		)
 		author, err := dq.GetAuthor(ctx, book.AuthorID)
 		if err != nil {
 			t.Fatal(err)
@@ -157,7 +177,14 @@ func TestBooks(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, ab := range res {
-		t.Logf("Book %d: '%s', Author: '%s', ISBN: '%s' Tags: '%v'\n", ab.BookID, ab.Title, ab.Name.String, ab.Isbn, ab.Tags)
+		t.Logf(
+			"Book %d: '%s', Author: '%s', ISBN: '%s' Tags: '%v'\n",
+			ab.BookID,
+			ab.Title,
+			ab.Name.String,
+			ab.Isbn,
+			ab.Tags,
+		)
 	}
 
 	// TODO: call say_hello(varchar)

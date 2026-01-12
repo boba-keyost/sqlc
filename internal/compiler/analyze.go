@@ -3,13 +3,13 @@ package compiler
 import (
 	"sort"
 
-	analyzer "github.com/sqlc-dev/sqlc/internal/analysis"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/source"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/named"
-	"github.com/sqlc-dev/sqlc/internal/sql/rewrite"
-	"github.com/sqlc-dev/sqlc/internal/sql/validate"
+	analyzer "github.com/boba-keyost/sqlc/internal/analysis"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/source"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/named"
+	"github.com/boba-keyost/sqlc/internal/sql/rewrite"
+	"github.com/boba-keyost/sqlc/internal/sql/validate"
 )
 
 type analysis struct {

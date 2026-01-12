@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/analyzer"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/dbmanager"
-	"github.com/sqlc-dev/sqlc/internal/engine/dolphin"
-	"github.com/sqlc-dev/sqlc/internal/engine/postgresql"
-	pganalyze "github.com/sqlc-dev/sqlc/internal/engine/postgresql/analyzer"
-	"github.com/sqlc-dev/sqlc/internal/engine/sqlite"
-	sqliteanalyze "github.com/sqlc-dev/sqlc/internal/engine/sqlite/analyzer"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
-	"github.com/sqlc-dev/sqlc/internal/x/expander"
+	"github.com/boba-keyost/sqlc/internal/analyzer"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/dbmanager"
+	"github.com/boba-keyost/sqlc/internal/engine/dolphin"
+	"github.com/boba-keyost/sqlc/internal/engine/postgresql"
+	pganalyze "github.com/boba-keyost/sqlc/internal/engine/postgresql/analyzer"
+	"github.com/boba-keyost/sqlc/internal/engine/sqlite"
+	sqliteanalyze "github.com/boba-keyost/sqlc/internal/engine/sqlite/analyzer"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/x/expander"
 )
 
 type Compiler struct {

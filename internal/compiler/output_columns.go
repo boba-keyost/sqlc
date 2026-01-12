@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
-	"github.com/sqlc-dev/sqlc/internal/sql/lang"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/lang"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 // OutputColumns determines which columns a statement will output
@@ -24,16 +24,18 @@ func (c *Compiler) OutputColumns(stmt ast.Node) ([]*catalog.Column, error) {
 
 	catCols := make([]*catalog.Column, 0, len(cols))
 	for _, col := range cols {
-		catCols = append(catCols, &catalog.Column{
-			Name:       col.Name,
-			Type:       ast.TypeName{Name: col.DataType},
-			IsNotNull:  col.NotNull,
-			IsUnsigned: col.Unsigned,
-			IsArray:    col.IsArray,
-			ArrayDims:  col.ArrayDims,
-			Comment:    col.Comment,
-			Length:     col.Length,
-		})
+		catCols = append(
+			catCols, &catalog.Column{
+				Name:       col.Name,
+				Type:       ast.TypeName{Name: col.DataType},
+				IsNotNull:  col.NotNull,
+				IsUnsigned: col.Unsigned,
+				IsArray:    col.IsArray,
+				ArrayDims:  col.ArrayDims,
+				Comment:    col.Comment,
+				Length:     col.Length,
+			},
+		)
 	}
 	return catCols, nil
 }
@@ -86,7 +88,10 @@ func (c *Compiler) outputColumns(qc *QueryCatalog, node ast.Node) ([]*Column, er
 						continue
 					}
 					if err := findColumnForNode(sb.Node, tables, targets); err != nil {
-						return nil, fmt.Errorf("%v: if you want to skip this validation, set 'strict_order_by' to false", err)
+						return nil, fmt.Errorf(
+							"%v: if you want to skip this validation, set 'strict_order_by' to false",
+							err,
+						)
 					}
 				}
 			}
@@ -102,7 +107,10 @@ func (c *Compiler) outputColumns(qc *QueryCatalog, node ast.Node) ([]*Column, er
 							continue
 						}
 						if err := findColumnForNode(caseExpr.Xpr, tables, targets); err != nil {
-							return nil, fmt.Errorf("%v: if you want to skip this validation, set 'strict_order_by' to false", err)
+							return nil, fmt.Errorf(
+								"%v: if you want to skip this validation, set 'strict_order_by' to false",
+								err,
+							)
 						}
 					}
 				}
@@ -259,10 +267,12 @@ func (c *Compiler) outputColumns(qc *QueryCatalog, node ast.Node) ([]*Column, er
 
 				// add a column with a reference to an embedded table
 				if embed, ok := qc.embeds.Find(n); ok {
-					cols = append(cols, &Column{
-						Name:       embed.Table.Name,
-						EmbedTable: embed.Table,
-					})
+					cols = append(
+						cols, &Column{
+							Name:       embed.Table.Name,
+							EmbedTable: embed.Table,
+						},
+					)
 					continue
 				}
 
@@ -277,20 +287,22 @@ func (c *Compiler) outputColumns(qc *QueryCatalog, node ast.Node) ([]*Column, er
 						if res.Name != nil {
 							cname = *res.Name
 						}
-						cols = append(cols, &Column{
-							Name:         cname,
-							OriginalName: c.Name,
-							Type:         c.Type,
-							Scope:        scope,
-							Table:        c.Table,
-							TableAlias:   t.Rel.Name,
-							DataType:     c.DataType,
-							NotNull:      c.NotNull,
-							Unsigned:     c.Unsigned,
-							IsArray:      c.IsArray,
-							ArrayDims:    c.ArrayDims,
-							Length:       c.Length,
-						})
+						cols = append(
+							cols, &Column{
+								Name:         cname,
+								OriginalName: c.Name,
+								Type:         c.Type,
+								Scope:        scope,
+								Table:        c.Table,
+								TableAlias:   t.Rel.Name,
+								DataType:     c.DataType,
+								NotNull:      c.NotNull,
+								Unsigned:     c.Unsigned,
+								IsArray:      c.IsArray,
+								ArrayDims:    c.ArrayDims,
+								Length:       c.Length,
+							},
+						)
 					}
 				}
 				continue
@@ -310,18 +322,22 @@ func (c *Compiler) outputColumns(qc *QueryCatalog, node ast.Node) ([]*Column, er
 			}
 			fun, err := qc.catalog.ResolveFuncCall(n)
 			if err == nil {
-				cols = append(cols, &Column{
-					Name:       name,
-					DataType:   dataType(fun.ReturnType),
-					NotNull:    !fun.ReturnTypeNullable,
-					IsFuncCall: true,
-				})
+				cols = append(
+					cols, &Column{
+						Name:       name,
+						DataType:   dataType(fun.ReturnType),
+						NotNull:    !fun.ReturnTypeNullable,
+						IsFuncCall: true,
+					},
+				)
 			} else {
-				cols = append(cols, &Column{
-					Name:       name,
-					DataType:   "any",
-					IsFuncCall: true,
-				})
+				cols = append(
+					cols, &Column{
+						Name:       name,
+						DataType:   "any",
+						IsFuncCall: true,
+					},
+				)
 			}
 
 		case *ast.SubLink:
@@ -499,15 +515,19 @@ func (c *Compiler) sourceTables(qc *QueryCatalog, node ast.Node) ([]*Table, erro
 		astutils.Walk(&tv, n.FromClause)
 		list = &tv.list
 	case *ast.TruncateStmt:
-		list = astutils.Search(n.Relations, func(node ast.Node) bool {
-			_, ok := node.(*ast.RangeVar)
-			return ok
-		})
+		list = astutils.Search(
+			n.Relations, func(node ast.Node) bool {
+				_, ok := node.(*ast.RangeVar)
+				return ok
+			},
+		)
 	case *ast.RefreshMatViewStmt:
-		list = astutils.Search(n.Relation, func(node ast.Node) bool {
-			_, ok := node.(*ast.RangeVar)
-			return ok
-		})
+		list = astutils.Search(
+			n.Relation, func(node ast.Node) bool {
+				_, ok := node.(*ast.RangeVar)
+				return ok
+			},
+		)
 	case *ast.UpdateStmt:
 		var tv tableVisitor
 		astutils.Walk(&tv, n.FromClause)
@@ -546,20 +566,24 @@ func (c *Compiler) sourceTables(qc *QueryCatalog, node ast.Node) ([]*Table, erro
 			}
 			var table *Table
 			if fn.ReturnType != nil {
-				table, err = qc.GetTable(&ast.TableName{
-					Catalog: fn.ReturnType.Catalog,
-					Schema:  fn.ReturnType.Schema,
-					Name:    fn.ReturnType.Name,
-				})
+				table, err = qc.GetTable(
+					&ast.TableName{
+						Catalog: fn.ReturnType.Catalog,
+						Schema:  fn.ReturnType.Schema,
+						Name:    fn.ReturnType.Name,
+					},
+				)
 			}
 			if table == nil || err != nil {
 				if n.Alias != nil && len(n.Alias.Colnames.Items) > 0 {
 					table = &Table{}
 					for _, colName := range n.Alias.Colnames.Items {
-						table.Columns = append(table.Columns, &Column{
-							Name:     colName.(*ast.String).Str,
-							DataType: "any",
-						})
+						table.Columns = append(
+							table.Columns, &Column{
+								Name:     colName.(*ast.String).Str,
+								DataType: "any",
+							},
+						)
 					}
 				} else {
 					colName := fn.Rel.Name
@@ -575,10 +599,12 @@ func (c *Compiler) sourceTables(qc *QueryCatalog, node ast.Node) ([]*Table, erro
 					}
 					if len(fn.Outs) > 0 {
 						for _, arg := range fn.Outs {
-							table.Columns = append(table.Columns, &Column{
-								Name:     arg.Name,
-								DataType: arg.Type.Name,
-							})
+							table.Columns = append(
+								table.Columns, &Column{
+									Name:     arg.Name,
+									DataType: arg.Type.Name,
+								},
+							)
 						}
 					}
 					if fn.ReturnType != nil {
@@ -609,12 +635,14 @@ func (c *Compiler) sourceTables(qc *QueryCatalog, node ast.Node) ([]*Table, erro
 				tableName = *n.Alias.Aliasname
 			}
 
-			tables = append(tables, &Table{
-				Rel: &ast.TableName{
-					Name: tableName,
+			tables = append(
+				tables, &Table{
+					Rel: &ast.TableName{
+						Name: tableName,
+					},
+					Columns: cols,
 				},
-				Columns: cols,
-			})
+			)
 
 		case *ast.RangeVar:
 			fqn, err := ParseTableName(n)
@@ -680,20 +708,22 @@ func outputColumnRefs(res *ast.ResTarget, tables []*Table, node *ast.ColumnRef) 
 				if res.Name != nil {
 					cname = *res.Name
 				}
-				cols = append(cols, &Column{
-					Name:         cname,
-					Type:         c.Type,
-					Table:        c.Table,
-					TableAlias:   alias,
-					DataType:     c.DataType,
-					NotNull:      c.NotNull,
-					Unsigned:     c.Unsigned,
-					IsArray:      c.IsArray,
-					ArrayDims:    c.ArrayDims,
-					Length:       c.Length,
-					EmbedTable:   c.EmbedTable,
-					OriginalName: c.Name,
-				})
+				cols = append(
+					cols, &Column{
+						Name:         cname,
+						Type:         c.Type,
+						Table:        c.Table,
+						TableAlias:   alias,
+						DataType:     c.DataType,
+						NotNull:      c.NotNull,
+						Unsigned:     c.Unsigned,
+						IsArray:      c.IsArray,
+						ArrayDims:    c.ArrayDims,
+						Length:       c.Length,
+						EmbedTable:   c.EmbedTable,
+						OriginalName: c.Name,
+					},
+				)
 			}
 		}
 	}

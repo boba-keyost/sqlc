@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	golang "github.com/sqlc-dev/sqlc/internal/codegen/golang/opts"
+	golang "github.com/boba-keyost/sqlc/internal/codegen/golang/opts"
 )
 
 type versionSetting struct {
@@ -125,8 +125,8 @@ type SQL struct {
 // AnalyzerDatabase represents the database analyzer setting.
 // It can be a boolean (true/false) or the string "only" for database-only mode.
 type AnalyzerDatabase struct {
-	value   *bool  // nil means not set, true/false for boolean values
-	isOnly  bool   // true when set to "only"
+	value  *bool // nil means not set, true/false for boolean values
+	isOnly bool  // true when set to "only"
 }
 
 // IsEnabled returns true if the database analyzer should be used.
@@ -229,18 +229,22 @@ var ErrPluginBothTypes = errors.New("plugin: `process` and `wasm` cannot both be
 var ErrPluginProcessNoCmd = errors.New("plugin: missing process command")
 
 var ErrInvalidDatabase = errors.New("database must be managed or have a non-empty URI")
-var ErrManagedDatabaseNoProject = errors.New(`managed databases require a cloud project
+var ErrManagedDatabaseNoProject = errors.New(
+	`managed databases require a cloud project
 
 If you don't have a project, you can create one from the sqlc Cloud
 dashboard at https://dashboard.sqlc.dev/. If you have a project, ensure
 you've set its id as the value of the "project" field within the "cloud"
 section of your sqlc configuration. The id will look similar to
-"01HA8TWGMYPHK0V2GGMB3R2TP9".`)
-var ErrManagedDatabaseNoAuthToken = errors.New(`managed databases require an auth token
+"01HA8TWGMYPHK0V2GGMB3R2TP9".`,
+)
+var ErrManagedDatabaseNoAuthToken = errors.New(
+	`managed databases require an auth token
 
 If you don't have an auth token, you can create one from the sqlc Cloud
 dashboard at https://dashboard.sqlc.dev/. If you have an auth token, ensure
-you've set it as the value of the SQLC_AUTH_TOKEN environment variable.`)
+you've set it as the value of the SQLC_AUTH_TOKEN environment variable.`,
+)
 
 func ParseConfig(rd io.Reader) (Config, error) {
 	var buf bytes.Buffer

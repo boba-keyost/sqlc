@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sqlc-dev/sqlc/internal/codegen/sdk"
-	"github.com/sqlc-dev/sqlc/internal/pattern"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/codegen/sdk"
+	"github.com/boba-keyost/sqlc/internal/pattern"
+	"github.com/boba-keyost/sqlc/internal/plugin"
 )
 
 type Override struct {
@@ -15,7 +15,7 @@ type Override struct {
 	GoType GoType `json:"go_type" yaml:"go_type"`
 
 	// additional Go struct tags to add to this field, in raw Go struct tag form, e.g. `validate:"required" x:"y,z"`
-	// see https://github.com/sqlc-dev/sqlc/issues/534
+	// see https://github.com/boba-keyost/sqlc/issues/534
 	GoStructTag GoStructTag `json:"go_struct_tag" yaml:"go_struct_tag"`
 
 	// fully qualified name of the Go type, e.g. `github.com/segmentio/ksuid.KSUID`
@@ -86,7 +86,10 @@ func (o *Override) MatchesColumn(col *plugin.Column) bool {
 func (o *Override) parse(req *plugin.GenerateRequest) (err error) {
 	// validate deprecated postgres_type field
 	if o.Deprecated_PostgresType != "" {
-		fmt.Fprintf(os.Stderr, "WARNING: \"postgres_type\" is deprecated. Instead, use \"db_type\" to specify a type override.\n")
+		fmt.Fprintf(
+			os.Stderr,
+			"WARNING: \"postgres_type\" is deprecated. Instead, use \"db_type\" to specify a type override.\n",
+		)
 		if o.DBType != "" {
 			return fmt.Errorf(`Type override configurations cannot have "db_type" and "postres_type" together. Use "db_type" alone`)
 		}
@@ -150,7 +153,10 @@ func (o *Override) parse(req *plugin.GenerateRequest) (err error) {
 				return err
 			}
 		default:
-			return fmt.Errorf("Override `column` specifier %q is not the proper format, expected '[catalog.][schema.]tablename.colname'", o.Column)
+			return fmt.Errorf(
+				"Override `column` specifier %q is not the proper format, expected '[catalog.][schema.]tablename.colname'",
+				o.Column,
+			)
 		}
 	}
 

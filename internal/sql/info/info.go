@@ -1,7 +1,7 @@
 package info
 
 import (
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
 )
 
 // Provide a read-only view into the catalog
@@ -24,11 +24,13 @@ func (i *InformationSchema) Tables() []Table {
 	var tables []Table
 	for _, s := range i.c.Schemas {
 		for _, t := range s.Tables {
-			tables = append(tables, Table{
-				Catalog: i.c.Name,
-				Schema:  s.Name,
-				Name:    t.Rel.Name,
-			})
+			tables = append(
+				tables, Table{
+					Catalog: i.c.Name,
+					Schema:  s.Name,
+					Name:    t.Rel.Name,
+				},
+			)
 		}
 	}
 	return tables

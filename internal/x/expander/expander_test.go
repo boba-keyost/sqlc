@@ -13,9 +13,9 @@ import (
 	"github.com/ncruces/go-sqlite3"
 	_ "github.com/ncruces/go-sqlite3/embed"
 
-	"github.com/sqlc-dev/sqlc/internal/engine/dolphin"
-	"github.com/sqlc-dev/sqlc/internal/engine/postgresql"
-	"github.com/sqlc-dev/sqlc/internal/engine/sqlite"
+	"github.com/boba-keyost/sqlc/internal/engine/dolphin"
+	"github.com/boba-keyost/sqlc/internal/engine/postgresql"
+	"github.com/boba-keyost/sqlc/internal/engine/sqlite"
 )
 
 // PostgreSQLColumnGetter implements ColumnGetter for PostgreSQL using pgxpool.
@@ -56,28 +56,30 @@ func (g *MySQLColumnGetter) GetColumnNames(ctx context.Context, query string) ([
 	defer conn.Close()
 
 	var columns []string
-	err = conn.Raw(func(driverConn any) error {
-		preparer, ok := driverConn.(driver.ConnPrepareContext)
-		if !ok {
-			return fmt.Errorf("driver connection does not support PrepareContext")
-		}
+	err = conn.Raw(
+		func(driverConn any) error {
+			preparer, ok := driverConn.(driver.ConnPrepareContext)
+			if !ok {
+				return fmt.Errorf("driver connection does not support PrepareContext")
+			}
 
-		stmt, err := preparer.PrepareContext(ctx, query)
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
+			stmt, err := preparer.PrepareContext(ctx, query)
+			if err != nil {
+				return err
+			}
+			defer stmt.Close()
 
-		meta, ok := stmt.(mysql.StmtMetadata)
-		if !ok {
-			return fmt.Errorf("prepared statement does not implement StmtMetadata")
-		}
+			meta, ok := stmt.(mysql.StmtMetadata)
+			if !ok {
+				return fmt.Errorf("prepared statement does not implement StmtMetadata")
+			}
 
-		for _, col := range meta.ColumnMetadata() {
-			columns = append(columns, col.Name)
-		}
-		return nil
-	})
+			for _, col := range meta.ColumnMetadata() {
+				columns = append(columns, col.Name)
+			}
+			return nil
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -124,14 +126,16 @@ func TestExpandPostgreSQL(t *testing.T) {
 	defer pool.Close()
 
 	// Create a test table
-	_, err = pool.Exec(ctx, `
+	_, err = pool.Exec(
+		ctx, `
 		DROP TABLE IF EXISTS authors;
 		CREATE TABLE authors (
 			id SERIAL PRIMARY KEY,
 			name TEXT NOT NULL,
 			bio TEXT
 		);
-	`)
+	`,
+	)
 	if err != nil {
 		t.Fatalf("failed to create test table: %v", err)
 	}
@@ -222,15 +226,17 @@ func TestExpandPostgreSQL(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result, err := exp.Expand(ctx, tc.query)
-			if err != nil {
-				t.Fatalf("Expand failed: %v", err)
-			}
-			if result != tc.expected {
-				t.Errorf("expected %q, got %q", tc.expected, result)
-			}
-		})
+		t.Run(
+			tc.name, func(t *testing.T) {
+				result, err := exp.Expand(ctx, tc.query)
+				if err != nil {
+					t.Fatalf("Expand failed: %v", err)
+				}
+				if result != tc.expected {
+					t.Errorf("expected %q, got %q", tc.expected, result)
+				}
+			},
+		)
 	}
 }
 
@@ -277,13 +283,15 @@ func TestExpandMySQL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to drop test table: %v", err)
 	}
-	_, err = db.ExecContext(ctx, `
+	_, err = db.ExecContext(
+		ctx, `
 		CREATE TABLE authors (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			bio TEXT
 		)
-	`)
+	`,
+	)
 	if err != nil {
 		t.Fatalf("failed to create test table: %v", err)
 	}
@@ -344,15 +352,17 @@ func TestExpandMySQL(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result, err := exp.Expand(ctx, tc.query)
-			if err != nil {
-				t.Fatalf("Expand failed: %v", err)
-			}
-			if result != tc.expected {
-				t.Errorf("expected %q, got %q", tc.expected, result)
-			}
-		})
+		t.Run(
+			tc.name, func(t *testing.T) {
+				result, err := exp.Expand(ctx, tc.query)
+				if err != nil {
+					t.Fatalf("Expand failed: %v", err)
+				}
+				if result != tc.expected {
+					t.Errorf("expected %q, got %q", tc.expected, result)
+				}
+			},
+		)
 	}
 }
 
@@ -367,13 +377,15 @@ func TestExpandSQLite(t *testing.T) {
 	defer conn.Close()
 
 	// Create a test table
-	err = conn.Exec(`
+	err = conn.Exec(
+		`
 		CREATE TABLE authors (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
 			bio TEXT
 		)
-	`)
+	`,
+	)
 	if err != nil {
 		t.Fatalf("failed to create test table: %v", err)
 	}
@@ -433,14 +445,16 @@ func TestExpandSQLite(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result, err := exp.Expand(ctx, tc.query)
-			if err != nil {
-				t.Fatalf("Expand failed: %v", err)
-			}
-			if result != tc.expected {
-				t.Errorf("expected %q, got %q", tc.expected, result)
-			}
-		})
+		t.Run(
+			tc.name, func(t *testing.T) {
+				result, err := exp.Expand(ctx, tc.query)
+				if err != nil {
+					t.Fatalf("Expand failed: %v", err)
+				}
+				if result != tc.expected {
+					t.Errorf("expected %q, got %q", tc.expected, result)
+				}
+			},
+		)
 	}
 }

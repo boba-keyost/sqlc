@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/dbmanager"
-	"github.com/sqlc-dev/sqlc/internal/migrations"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/dbmanager"
+	"github.com/boba-keyost/sqlc/internal/migrations"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
 )
 
 var createDBCmd = &cobra.Command{
@@ -26,10 +26,12 @@ var createDBCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		err = CreateDB(cmd.Context(), dir, filename, querySetName, &Options{
-			Env:    ParseEnv(cmd),
-			Stderr: stderr,
-		})
+		err = CreateDB(
+			cmd.Context(), dir, filename, querySetName, &Options{
+				Env:    ParseEnv(cmd),
+				Stderr: stderr,
+			},
+		)
 		if err != nil {
 			fmt.Fprintln(stderr, err.Error())
 			os.Exit(1)
@@ -90,11 +92,13 @@ func CreateDB(ctx context.Context, dir, filename, querySetName string, o *Option
 
 	now := time.Now().UTC().UnixNano()
 	client := dbmanager.NewClient(conf.Servers)
-	resp, err := client.CreateDatabase(ctx, &dbmanager.CreateDatabaseRequest{
-		Engine:     string(queryset.Engine),
-		Migrations: ddl,
-		Prefix:     fmt.Sprintf("sqlc_createdb_%d", now),
-	})
+	resp, err := client.CreateDatabase(
+		ctx, &dbmanager.CreateDatabaseRequest{
+			Engine:     string(queryset.Engine),
+			Migrations: ddl,
+			Prefix:     fmt.Sprintf("sqlc_createdb_%d", now),
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("managed: create database: %w", err)
 	}

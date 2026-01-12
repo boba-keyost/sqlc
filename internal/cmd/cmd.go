@@ -17,11 +17,11 @@ import (
 	"github.com/spf13/pflag"
 	"gopkg.in/yaml.v3"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/debug"
-	"github.com/sqlc-dev/sqlc/internal/info"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/tracer"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/debug"
+	"github.com/boba-keyost/sqlc/internal/info"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/tracer"
 )
 
 func init() {
@@ -199,10 +199,12 @@ var genCmd = &cobra.Command{
 		defer trace.StartRegion(cmd.Context(), "generate").End()
 		stderr := cmd.ErrOrStderr()
 		dir, name := getConfigPath(stderr, cmd.Flag("file"))
-		output, err := Generate(cmd.Context(), dir, name, &Options{
-			Env:    ParseEnv(cmd),
-			Stderr: stderr,
-		})
+		output, err := Generate(
+			cmd.Context(), dir, name, &Options{
+				Env:    ParseEnv(cmd),
+				Stderr: stderr,
+			},
+		)
 		if err != nil {
 			os.Exit(1)
 		}
@@ -225,10 +227,12 @@ var checkCmd = &cobra.Command{
 		defer trace.StartRegion(cmd.Context(), "compile").End()
 		stderr := cmd.ErrOrStderr()
 		dir, name := getConfigPath(stderr, cmd.Flag("file"))
-		_, err := Generate(cmd.Context(), dir, name, &Options{
-			Env:    ParseEnv(cmd),
-			Stderr: stderr,
-		})
+		_, err := Generate(
+			cmd.Context(), dir, name, &Options{
+				Env:    ParseEnv(cmd),
+				Stderr: stderr,
+			},
+		)
 		if err != nil {
 			os.Exit(1)
 		}

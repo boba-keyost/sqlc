@@ -1,7 +1,7 @@
 package catalog
 
 import (
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
 )
 
 // Catalog describes a database instance consisting of metadata in which database objects are defined
@@ -126,13 +126,15 @@ func (c *Catalog) Update(stmt ast.Statement, colGen columnGenerator) error {
 
 	case *ast.List:
 		for _, nn := range n.Items {
-			if err = c.Update(ast.Statement{
-				Raw: &ast.RawStmt{
-					Stmt:         nn,
-					StmtLocation: stmt.Raw.StmtLocation,
-					StmtLen:      stmt.Raw.StmtLen,
-				},
-			}, colGen); err != nil {
+			if err = c.Update(
+				ast.Statement{
+					Raw: &ast.RawStmt{
+						Stmt:         nn,
+						StmtLocation: stmt.Raw.StmtLocation,
+						StmtLen:      stmt.Raw.StmtLen,
+					},
+				}, colGen,
+			); err != nil {
 				return err
 			}
 		}

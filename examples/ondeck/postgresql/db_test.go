@@ -10,37 +10,43 @@ import (
 	"github.com/google/go-cmp/cmp"
 	_ "github.com/lib/pq"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func runOnDeckQueries(t *testing.T, q *Queries) {
 	ctx := context.Background()
 
-	city, err := q.CreateCity(ctx, CreateCityParams{
-		Slug: "san-francisco",
-		Name: "San Francisco",
-	})
+	city, err := q.CreateCity(
+		ctx, CreateCityParams{
+			Slug: "san-francisco",
+			Name: "San Francisco",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	venueID, err := q.CreateVenue(ctx, CreateVenueParams{
-		Slug:            "the-fillmore",
-		Name:            "The Fillmore",
-		City:            city.Slug,
-		SpotifyPlaylist: "spotify:uri",
-		Status:          StatusOpen,
-		Statuses:        []Status{StatusOpen, StatusClosed},
-		Tags:            []string{"rock", "punk"},
-	})
+	venueID, err := q.CreateVenue(
+		ctx, CreateVenueParams{
+			Slug:            "the-fillmore",
+			Name:            "The Fillmore",
+			City:            city.Slug,
+			SpotifyPlaylist: "spotify:uri",
+			Status:          StatusOpen,
+			Statuses:        []Status{StatusOpen, StatusClosed},
+			Tags:            []string{"rock", "punk"},
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	venue, err := q.GetVenue(ctx, GetVenueParams{
-		Slug: "the-fillmore",
-		City: city.Slug,
-	})
+	venue, err := q.GetVenue(
+		ctx, GetVenueParams{
+			Slug: "the-fillmore",
+			City: city.Slug,
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,9 +70,11 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 		if err != nil {
 			t.Error(err)
 		}
-		if diff := cmp.Diff(actual, []VenueCountByCityRow{
-			{city.Slug, 1},
-		}); diff != "" {
+		if diff := cmp.Diff(
+			actual, []VenueCountByCityRow{
+				{city.Slug, 1},
+			},
+		); diff != "" {
 			t.Errorf("venue county mismatch:\n%s", diff)
 		}
 	}
@@ -92,20 +100,24 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 	}
 
 	{
-		err := q.UpdateCityName(ctx, UpdateCityNameParams{
-			Slug: city.Slug,
-			Name: "SF",
-		})
+		err := q.UpdateCityName(
+			ctx, UpdateCityNameParams{
+				Slug: city.Slug,
+				Name: "SF",
+			},
+		)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
 	{
-		id, err := q.UpdateVenueName(ctx, UpdateVenueNameParams{
-			Slug: venue.Slug,
-			Name: "Fillmore",
-		})
+		id, err := q.UpdateVenueName(
+			ctx, UpdateVenueNameParams{
+				Slug: venue.Slug,
+				Name: "Fillmore",
+			},
+		)
 		if err != nil {
 			t.Error(err)
 		}

@@ -48,8 +48,8 @@ const catalogTmpl = `
 package {{.Pkg}}
 
 import (
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
 )
 
 var funcs{{.GenFnName}} = []*catalog.Function {
@@ -119,8 +119,8 @@ const loaderFuncTmpl = `
 package postgresql
 
 import (
-	"github.com/sqlc-dev/sqlc/internal/engine/postgresql/contrib"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/engine/postgresql/contrib"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
 )
 
 func loadExtension(name string) *catalog.Schema {
@@ -184,20 +184,22 @@ func writeFormattedGo(tmpl *template.Template, data any, destPath string) error 
 // preserveLegacyCatalogBehavior ensures there are no accidental test breakages
 func preserveLegacyCatalogBehavior(allProcs []Proc) []Proc {
 	// Preserve the legacy sort order of the end-to-end tests
-	sort.SliceStable(allProcs, func(i, j int) bool {
-		fnA := allProcs[i]
-		fnB := allProcs[j]
+	sort.SliceStable(
+		allProcs, func(i, j int) bool {
+			fnA := allProcs[i]
+			fnB := allProcs[j]
 
-		if fnA.Name == "lower" && fnB.Name == "lower" && len(fnA.ArgTypes) == 1 && fnA.ArgTypes[0] == "text" {
-			return true
-		}
+			if fnA.Name == "lower" && fnB.Name == "lower" && len(fnA.ArgTypes) == 1 && fnA.ArgTypes[0] == "text" {
+				return true
+			}
 
-		if fnA.Name == "generate_series" && fnB.Name == "generate_series" && len(fnA.ArgTypes) == 2 && fnA.ArgTypes[0] == "numeric" {
-			return true
-		}
+			if fnA.Name == "generate_series" && fnB.Name == "generate_series" && len(fnA.ArgTypes) == 2 && fnA.ArgTypes[0] == "numeric" {
+				return true
+			}
 
-		return false
-	})
+			return false
+		},
+	)
 
 	procs := make([]Proc, 0, len(allProcs))
 	for _, p := range allProcs {
@@ -286,13 +288,15 @@ func run(ctx context.Context) error {
 			return err
 		}
 
-		err = writeFormattedGo(tmpl, tmplCtx{
-			Pkg:        "postgresql",
-			SchemaName: schema.Name,
-			GenFnName:  schema.GenFnName,
-			Procs:      procs,
-			Relations:  relations,
-		}, schema.DestPath)
+		err = writeFormattedGo(
+			tmpl, tmplCtx{
+				Pkg:        "postgresql",
+				SchemaName: schema.Name,
+				GenFnName:  schema.GenFnName,
+				Procs:      procs,
+				Relations:  relations,
+			}, schema.DestPath,
+		)
 
 		if err != nil {
 			return err
@@ -326,26 +330,30 @@ func run(ctx context.Context) error {
 		}
 
 		// Preserve the legacy sort order of the end-to-end tests
-		sort.SliceStable(procs, func(i, j int) bool {
-			fnA := procs[i]
-			fnB := procs[j]
+		sort.SliceStable(
+			procs, func(i, j int) bool {
+				fnA := procs[i]
+				fnB := procs[j]
 
-			if extension == "pgcrypto" {
-				if fnA.Name == "digest" && fnB.Name == "digest" && len(fnA.ArgTypes) == 2 && fnA.ArgTypes[0] == "text" {
-					return true
+				if extension == "pgcrypto" {
+					if fnA.Name == "digest" && fnB.Name == "digest" && len(fnA.ArgTypes) == 2 && fnA.ArgTypes[0] == "text" {
+						return true
+					}
 				}
-			}
 
-			return false
-		})
+				return false
+			},
+		)
 
 		extensionPath := filepath.Join(dir, "contrib", name+".go")
-		err = writeFormattedGo(tmpl, tmplCtx{
-			Pkg:        "contrib",
-			SchemaName: "pg_catalog",
-			GenFnName:  funcName,
-			Procs:      procs,
-		}, extensionPath)
+		err = writeFormattedGo(
+			tmpl, tmplCtx{
+				Pkg:        "contrib",
+				SchemaName: "pg_catalog",
+				GenFnName:  funcName,
+				Procs:      procs,
+			}, extensionPath,
+		)
 		if err != nil {
 			return fmt.Errorf("error generating extension %s: %w", extension, err)
 		}

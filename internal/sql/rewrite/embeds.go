@@ -3,8 +3,8 @@ package rewrite
 import (
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
 )
 
 // Embed is an instance of `sqlc.embed(param)`
@@ -38,40 +38,44 @@ func (es EmbedSet) Find(node *ast.ColumnRef) (*Embed, bool) {
 func Embeds(raw *ast.RawStmt) (*ast.RawStmt, EmbedSet) {
 	var embeds []*Embed
 
-	node := astutils.Apply(raw, func(cr *astutils.Cursor) bool {
-		node := cr.Node()
+	node := astutils.Apply(
+		raw, func(cr *astutils.Cursor) bool {
+			node := cr.Node()
 
-		switch {
-		case isEmbed(node):
-			fun := node.(*ast.FuncCall)
+			switch {
+			case isEmbed(node):
+				fun := node.(*ast.FuncCall)
 
-			if len(fun.Args.Items) == 0 {
-				return false
-			}
+				if len(fun.Args.Items) == 0 {
+					return false
+				}
 
-			param, _ := flatten(fun.Args)
+				param, _ := flatten(fun.Args)
 
-			node := &ast.ColumnRef{
-				Fields: &ast.List{
-					Items: []ast.Node{
-						&ast.String{Str: param},
-						&ast.A_Star{},
+				node := &ast.ColumnRef{
+					Fields: &ast.List{
+						Items: []ast.Node{
+							&ast.String{Str: param},
+							&ast.A_Star{},
+						},
 					},
-				},
+				}
+
+				embeds = append(
+					embeds, &Embed{
+						Table: &ast.TableName{Name: param},
+						param: param,
+						Node:  node,
+					},
+				)
+
+				cr.Replace(node)
+				return false
+			default:
+				return true
 			}
-
-			embeds = append(embeds, &Embed{
-				Table: &ast.TableName{Name: param},
-				param: param,
-				Node:  node,
-			})
-
-			cr.Replace(node)
-			return false
-		default:
-			return true
-		}
-	}, nil)
+		}, nil,
+	)
 
 	return node.(*ast.RawStmt), embeds
 }

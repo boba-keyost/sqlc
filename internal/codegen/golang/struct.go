@@ -5,8 +5,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/sqlc-dev/sqlc/internal/codegen/golang/opts"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/codegen/golang/opts"
+	"github.com/boba-keyost/sqlc/internal/plugin"
 )
 
 type Struct struct {
@@ -21,15 +21,17 @@ func StructName(name string, options *opts.Options) string {
 		return rename
 	}
 	out := ""
-	name = strings.Map(func(r rune) rune {
-		if unicode.IsLetter(r) {
-			return r
-		}
-		if unicode.IsDigit(r) {
-			return r
-		}
-		return rune('_')
-	}, name)
+	name = strings.Map(
+		func(r rune) rune {
+			if unicode.IsLetter(r) {
+				return r
+			}
+			if unicode.IsDigit(r) {
+				return r
+			}
+			return rune('_')
+		}, name,
+	)
 
 	for _, p := range strings.Split(name, "_") {
 		if _, found := options.InitialismsMap[p]; found {

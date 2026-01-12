@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 type Type interface {
@@ -84,10 +84,12 @@ func (c *Catalog) createEnum(stmt *ast.CreateEnumStmt) error {
 	if _, _, err := schema.getType(stmt.TypeName); err == nil {
 		return sqlerr.TypeExists(tbl.Name)
 	}
-	schema.Types = append(schema.Types, &Enum{
-		Name: stmt.TypeName.Name,
-		Vals: stringSlice(stmt.Vals),
-	})
+	schema.Types = append(
+		schema.Types, &Enum{
+			Name: stmt.TypeName.Name,
+			Vals: stringSlice(stmt.Vals),
+		},
+	)
 	return nil
 }
 
@@ -135,9 +137,11 @@ func (c *Catalog) createCompositeType(stmt *ast.CompositeTypeStmt) error {
 	if _, _, err := schema.getType(stmt.TypeName); err == nil {
 		return sqlerr.TypeExists(tbl.Name)
 	}
-	schema.Types = append(schema.Types, &CompositeType{
-		Name: stmt.TypeName.Name,
-	})
+	schema.Types = append(
+		schema.Types, &CompositeType{
+			Name: stmt.TypeName.Name,
+		},
+	)
 	return nil
 }
 
@@ -228,7 +232,12 @@ func (c *Catalog) alterTypeAddValue(stmt *ast.AlterTypeAddValueStmt) error {
 		}
 
 		if !foundNeighbor {
-			return fmt.Errorf("enum %s unable to find existing neighbor value %s for new value %s", enum.Name, *stmt.NewValNeighbor, *stmt.NewValue)
+			return fmt.Errorf(
+				"enum %s unable to find existing neighbor value %s for new value %s",
+				enum.Name,
+				*stmt.NewValNeighbor,
+				*stmt.NewValue,
+			)
 		}
 	}
 

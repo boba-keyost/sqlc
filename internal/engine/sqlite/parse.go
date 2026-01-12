@@ -6,9 +6,9 @@ import (
 	"io"
 
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/sqlc-dev/sqlc/internal/engine/sqlite/parser"
-	"github.com/sqlc-dev/sqlc/internal/source"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/engine/sqlite/parser"
+	"github.com/boba-keyost/sqlc/internal/source"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
 )
 
 type errorListener struct {
@@ -17,7 +17,13 @@ type errorListener struct {
 	err string
 }
 
-func (el *errorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
+func (el *errorListener) SyntaxError(
+	recognizer antlr.Recognizer,
+	offendingSymbol interface{},
+	line, column int,
+	msg string,
+	e antlr.RecognitionException,
+) {
 	el.err = msg
 }
 
@@ -73,13 +79,15 @@ func (p *Parser) Parse(r io.Reader) ([]ast.Statement, error) {
 				continue
 			}
 			len := (stmt.GetStop().GetStop() + 1) - loc
-			stmts = append(stmts, ast.Statement{
-				Raw: &ast.RawStmt{
-					Stmt:         out,
-					StmtLocation: loc,
-					StmtLen:      len,
+			stmts = append(
+				stmts, ast.Statement{
+					Raw: &ast.RawStmt{
+						Stmt:         out,
+						StmtLocation: loc,
+						StmtLen:      len,
+					},
 				},
-			})
+			)
 			loc = stmt.GetStop().GetStop() + 2
 		}
 	}

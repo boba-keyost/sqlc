@@ -3,7 +3,7 @@ package ast
 import (
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/format"
+	"github.com/boba-keyost/sqlc/internal/sql/format"
 )
 
 type SelectStmt struct {

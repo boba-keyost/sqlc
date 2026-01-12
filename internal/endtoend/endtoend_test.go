@@ -14,25 +14,29 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/sqlc-dev/sqlc/internal/cmd"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/docker"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/native"
+	"github.com/boba-keyost/sqlc/internal/cmd"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/sqltest/docker"
+	"github.com/boba-keyost/sqlc/internal/sqltest/native"
 )
 
 func lineEndings() cmp.Option {
-	return cmp.Transformer("LineEndings", func(in string) string {
-		// Replace Windows new lines with Unix newlines
-		return strings.Replace(in, "\r\n", "\n", -1)
-	})
+	return cmp.Transformer(
+		"LineEndings", func(in string) string {
+			// Replace Windows new lines with Unix newlines
+			return strings.Replace(in, "\r\n", "\n", -1)
+		},
+	)
 }
 
 func stderrTransformer() cmp.Option {
-	return cmp.Transformer("Stderr", func(in string) string {
-		s := strings.Replace(in, "\r", "", -1)
-		return strings.Replace(s, "\\", "/", -1)
-	})
+	return cmp.Transformer(
+		"Stderr", func(in string) string {
+			s := strings.Replace(in, "\r", "", -1)
+			return strings.Replace(s, "\\", "/", -1)
+		},
+	)
 }
 
 func TestExamples(t *testing.T) {
@@ -54,20 +58,22 @@ func TestExamples(t *testing.T) {
 			continue
 		}
 		tc := replay.Name()
-		t.Run(tc, func(t *testing.T) {
-			t.Parallel()
-			path := filepath.Join(examples, tc)
-			var stderr bytes.Buffer
-			opts := &cmd.Options{
-				Env:    cmd.Env{},
-				Stderr: &stderr,
-			}
-			output, err := cmd.Generate(ctx, path, "", opts)
-			if err != nil {
-				t.Fatalf("sqlc generate failed: %s", stderr.String())
-			}
-			cmpDirectory(t, path, output)
-		})
+		t.Run(
+			tc, func(t *testing.T) {
+				t.Parallel()
+				path := filepath.Join(examples, tc)
+				var stderr bytes.Buffer
+				opts := &cmd.Options{
+					Env:    cmd.Env{},
+					Stderr: &stderr,
+				}
+				output, err := cmd.Generate(ctx, path, "", opts)
+				if err != nil {
+					t.Fatalf("sqlc generate failed: %s", stderr.String())
+				}
+				cmpDirectory(t, path, output)
+			},
+		)
 	}
 }
 
@@ -86,17 +92,19 @@ func BenchmarkExamples(b *testing.B) {
 			continue
 		}
 		tc := replay.Name()
-		b.Run(tc, func(b *testing.B) {
-			path := filepath.Join(examples, tc)
-			for i := 0; i < b.N; i++ {
-				var stderr bytes.Buffer
-				opts := &cmd.Options{
-					Env:    cmd.Env{},
-					Stderr: &stderr,
+		b.Run(
+			tc, func(b *testing.B) {
+				path := filepath.Join(examples, tc)
+				for i := 0; i < b.N; i++ {
+					var stderr bytes.Buffer
+					opts := &cmd.Options{
+						Env:    cmd.Env{},
+						Stderr: &stderr,
+					}
+					cmd.Generate(ctx, path, "", opts)
 				}
-				cmd.Generate(ctx, path, "", opts)
-			}
-		})
+			},
+		)
 	}
 }
 
@@ -230,74 +238,76 @@ func TestReplay(t *testing.T) {
 
 		for _, replay := range FindTests(t, "testdata", name) {
 			tc := replay
-			t.Run(filepath.Join(name, tc.Name), func(t *testing.T) {
-				var stderr bytes.Buffer
-				var output map[string]string
-				var err error
+			t.Run(
+				filepath.Join(name, tc.Name), func(t *testing.T) {
+					var stderr bytes.Buffer
+					var output map[string]string
+					var err error
 
-				path, _ := filepath.Abs(tc.Path)
-				args := tc.Exec
-				if args == nil {
-					args = &Exec{Command: "generate"}
-				}
-				expected := string(tc.Stderr)
-
-				if args.Process != "" {
-					_, err := osexec.LookPath(args.Process)
-					if err != nil {
-						t.Skipf("executable not found: %s %s", args.Process, err)
+					path, _ := filepath.Abs(tc.Path)
+					args := tc.Exec
+					if args == nil {
+						args = &Exec{Command: "generate"}
 					}
-				}
+					expected := string(tc.Stderr)
 
-				if len(args.Contexts) > 0 {
-					if !slices.Contains(args.Contexts, name) {
-						t.Skipf("unsupported context: %s", name)
+					if args.Process != "" {
+						_, err := osexec.LookPath(args.Process)
+						if err != nil {
+							t.Skipf("executable not found: %s %s", args.Process, err)
+						}
 					}
-				}
 
-				if len(args.OS) > 0 {
-					if !slices.Contains(args.OS, runtime.GOOS) {
-						t.Skipf("unsupported os: %s", runtime.GOOS)
+					if len(args.Contexts) > 0 {
+						if !slices.Contains(args.Contexts, name) {
+							t.Skipf("unsupported context: %s", name)
+						}
 					}
-				}
 
-				opts := cmd.Options{
-					Env: cmd.Env{
-						Debug:      opts.DebugFromString(args.Env["SQLCDEBUG"]),
-						Experiment: opts.ExperimentFromString(args.Env["SQLCEXPERIMENT"]),
-						NoRemote:   true,
-					},
-					Stderr:       &stderr,
-					MutateConfig: testctx.Mutate(t, path),
-				}
-
-				switch args.Command {
-				case "diff":
-					err = cmd.Diff(ctx, path, "", &opts)
-				case "generate":
-					output, err = cmd.Generate(ctx, path, "", &opts)
-					if err == nil {
-						cmpDirectory(t, path, output)
+					if len(args.OS) > 0 {
+						if !slices.Contains(args.OS, runtime.GOOS) {
+							t.Skipf("unsupported os: %s", runtime.GOOS)
+						}
 					}
-				case "vet":
-					err = cmd.Vet(ctx, path, "", &opts)
-				default:
-					t.Fatalf("unknown command")
-				}
 
-				if len(expected) == 0 && err != nil {
-					t.Fatalf("sqlc %s failed: %s", args.Command, stderr.String())
-				}
+					opts := cmd.Options{
+						Env: cmd.Env{
+							Debug:      opts.DebugFromString(args.Env["SQLCDEBUG"]),
+							Experiment: opts.ExperimentFromString(args.Env["SQLCEXPERIMENT"]),
+							NoRemote:   true,
+						},
+						Stderr:       &stderr,
+						MutateConfig: testctx.Mutate(t, path),
+					}
 
-				diff := cmp.Diff(
-					strings.TrimSpace(expected),
-					strings.TrimSpace(stderr.String()),
-					stderrTransformer(),
-				)
-				if diff != "" {
-					t.Fatalf("stderr differed (-want +got):\n%s", diff)
-				}
-			})
+					switch args.Command {
+					case "diff":
+						err = cmd.Diff(ctx, path, "", &opts)
+					case "generate":
+						output, err = cmd.Generate(ctx, path, "", &opts)
+						if err == nil {
+							cmpDirectory(t, path, output)
+						}
+					case "vet":
+						err = cmd.Vet(ctx, path, "", &opts)
+					default:
+						t.Fatalf("unknown command")
+					}
+
+					if len(expected) == 0 && err != nil {
+						t.Fatalf("sqlc %s failed: %s", args.Command, stderr.String())
+					}
+
+					diff := cmp.Diff(
+						strings.TrimSpace(expected),
+						strings.TrimSpace(stderr.String()),
+						stderrTransformer(),
+					)
+					if diff != "" {
+						t.Fatalf("stderr differed (-want +got):\n%s", diff)
+					}
+				},
+			)
 		}
 	}
 }
@@ -311,7 +321,10 @@ func cmpDirectory(t *testing.T, dir string, actual map[string]string) {
 		if file.IsDir() {
 			return nil
 		}
-		if !strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, ".kt") && !strings.HasSuffix(path, ".py") && !strings.HasSuffix(path, ".json") && !strings.HasSuffix(path, ".txt") {
+		if !strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, ".kt") && !strings.HasSuffix(
+			path,
+			".py",
+		) && !strings.HasSuffix(path, ".json") && !strings.HasSuffix(path, ".txt") {
 			return nil
 		}
 		// TODO: Figure out a better way to ignore certain files
@@ -369,31 +382,35 @@ func cmpDirectory(t *testing.T, dir string, actual map[string]string) {
 func BenchmarkReplay(b *testing.B) {
 	ctx := context.Background()
 	var dirs []string
-	err := filepath.Walk("testdata", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.Name() == "sqlc.json" || info.Name() == "sqlc.yaml" || info.Name() == "sqlc.yml" {
-			dirs = append(dirs, filepath.Dir(path))
-			return filepath.SkipDir
-		}
-		return nil
-	})
+	err := filepath.Walk(
+		"testdata", func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.Name() == "sqlc.json" || info.Name() == "sqlc.yaml" || info.Name() == "sqlc.yml" {
+				dirs = append(dirs, filepath.Dir(path))
+				return filepath.SkipDir
+			}
+			return nil
+		},
+	)
 	if err != nil {
 		b.Fatal(err)
 	}
 	for _, replay := range dirs {
 		tc := replay
-		b.Run(tc, func(b *testing.B) {
-			path, _ := filepath.Abs(tc)
-			for i := 0; i < b.N; i++ {
-				var stderr bytes.Buffer
-				opts := &cmd.Options{
-					Env:    cmd.Env{},
-					Stderr: &stderr,
+		b.Run(
+			tc, func(b *testing.B) {
+				path, _ := filepath.Abs(tc)
+				for i := 0; i < b.N; i++ {
+					var stderr bytes.Buffer
+					opts := &cmd.Options{
+						Env:    cmd.Env{},
+						Stderr: &stderr,
+					}
+					cmd.Generate(ctx, path, "", opts)
 				}
-				cmd.Generate(ctx, path, "", opts)
-			}
-		})
+			},
+		)
 	}
 }

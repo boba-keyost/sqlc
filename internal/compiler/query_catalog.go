@@ -3,9 +3,9 @@ package compiler
 import (
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
-	"github.com/sqlc-dev/sqlc/internal/sql/rewrite"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/rewrite"
 )
 
 type QueryCatalog struct {
@@ -14,7 +14,10 @@ type QueryCatalog struct {
 	embeds  rewrite.EmbedSet
 }
 
-func (comp *Compiler) buildQueryCatalog(c *catalog.Catalog, node ast.Node, embeds rewrite.EmbedSet) (*QueryCatalog, error) {
+func (comp *Compiler) buildQueryCatalog(c *catalog.Catalog, node ast.Node, embeds rewrite.EmbedSet) (
+	*QueryCatalog,
+	error,
+) {
 	var with *ast.WithClause
 	switch n := node.(type) {
 	case *ast.DeleteStmt:

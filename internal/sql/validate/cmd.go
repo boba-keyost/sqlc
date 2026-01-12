@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/metadata"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
-	"github.com/sqlc-dev/sqlc/internal/sql/named"
+	"github.com/boba-keyost/sqlc/internal/metadata"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/sql/named"
 )
 
 func validateCopyfrom(n ast.Node) error {
@@ -52,10 +52,12 @@ func validateCopyfrom(n ast.Node) error {
 func validateBatch(n ast.Node) error {
 	funcs := astutils.Search(n, named.IsParamFunc)
 	params := astutils.Search(n, named.IsParamSign)
-	args := astutils.Search(n, func(n ast.Node) bool {
-		_, ok := n.(*ast.ParamRef)
-		return ok
-	})
+	args := astutils.Search(
+		n, func(n ast.Node) bool {
+			_, ok := n.(*ast.ParamRef)
+			return ok
+		},
+	)
 	if (len(params.Items) + len(funcs.Items) + len(args.Items)) == 0 {
 		return errors.New(":batch* commands require parameters")
 	}

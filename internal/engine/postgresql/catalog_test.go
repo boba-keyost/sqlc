@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -142,29 +142,31 @@ func TestUpdateErrors(t *testing.T) {
 		},
 	} {
 		test := tc
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			stmts, err := p.Parse(strings.NewReader(test.stmt))
-			if err != nil {
-				t.Log(test.stmt)
-				t.Fatal(err)
-			}
+		t.Run(
+			strconv.Itoa(i), func(t *testing.T) {
+				stmts, err := p.Parse(strings.NewReader(test.stmt))
+				if err != nil {
+					t.Log(test.stmt)
+					t.Fatal(err)
+				}
 
-			c := NewCatalog()
-			err = c.Build(stmts)
-			if err == nil {
-				t.Log(test.stmt)
-				t.Fatal("err was nil")
-			}
+				c := NewCatalog()
+				err = c.Build(stmts)
+				if err == nil {
+					t.Log(test.stmt)
+					t.Fatal("err was nil")
+				}
 
-			var actual *sqlerr.Error
-			if !errors.As(err, &actual) {
-				t.Fatalf("err is not *sqlerr.Error: %#v", err)
-			}
+				var actual *sqlerr.Error
+				if !errors.As(err, &actual) {
+					t.Fatalf("err is not *sqlerr.Error: %#v", err)
+				}
 
-			if diff := cmp.Diff(test.err.Error(), actual.Error()); diff != "" {
-				t.Log(test.stmt)
-				t.Errorf("error mismatch: \n%s", diff)
-			}
-		})
+				if diff := cmp.Diff(test.err.Error(), actual.Error()); diff != "" {
+					t.Log(test.stmt)
+					t.Errorf("error mismatch: \n%s", diff)
+				}
+			},
+		)
 	}
 }

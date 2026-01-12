@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sqlc-dev/sqlc/internal/engine/dolphin"
-	"github.com/sqlc-dev/sqlc/internal/engine/postgresql"
-	"github.com/sqlc-dev/sqlc/internal/engine/sqlite"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/engine/dolphin"
+	"github.com/boba-keyost/sqlc/internal/engine/postgresql"
+	"github.com/boba-keyost/sqlc/internal/engine/sqlite"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
 )
 
 var parseCmd = &cobra.Command{

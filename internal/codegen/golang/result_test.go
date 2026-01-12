@@ -3,8 +3,8 @@ package golang
 import (
 	"testing"
 
-	"github.com/sqlc-dev/sqlc/internal/metadata"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/metadata"
+	"github.com/boba-keyost/sqlc/internal/plugin"
 )
 
 func TestPutOutColumns_ForZeroColumns(t *testing.T) {
@@ -54,16 +54,18 @@ func TestPutOutColumns_ForZeroColumns(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		t.Run(tc.cmd, func(t *testing.T) {
-			query := &plugin.Query{
-				Cmd:     tc.cmd,
-				Columns: []*plugin.Column{},
-			}
-			got := putOutColumns(query)
-			if got != tc.want {
-				t.Errorf("putOutColumns failed. want %v, got %v", tc.want, got)
-			}
-		})
+		t.Run(
+			tc.cmd, func(t *testing.T) {
+				query := &plugin.Query{
+					Cmd:     tc.cmd,
+					Columns: []*plugin.Column{},
+				}
+				got := putOutColumns(query)
+				if got != tc.want {
+					t.Errorf("putOutColumns failed. want %v, got %v", tc.want, got)
+				}
+			},
+		)
 	}
 }
 

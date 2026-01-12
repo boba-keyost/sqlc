@@ -3,11 +3,11 @@ package metadata
 import (
 	"bufio"
 	"fmt"
-	"github.com/sqlc-dev/sqlc/internal/constants"
+	"github.com/boba-keyost/sqlc/internal/constants"
 	"strings"
 	"unicode"
 
-	"github.com/sqlc-dev/sqlc/internal/source"
+	"github.com/boba-keyost/sqlc/internal/source"
 )
 
 type CommentSyntax source.CommentSyntax
@@ -98,7 +98,10 @@ func ParseQueryNameAndType(t string, commentStyle CommentSyntax) (string, string
 			part = part[:len(part)-1] // removes the trailing "*/" element
 		}
 		if len(part) == 3 {
-			return "", "", fmt.Errorf("missing query type [':one', ':many', ':exec', ':execrows', ':execlastid', ':execresult', ':copyfrom', 'batchexec', 'batchmany', 'batchone']: %s", line)
+			return "", "", fmt.Errorf(
+				"missing query type [':one', ':many', ':exec', ':execrows', ':execlastid', ':execresult', ':copyfrom', 'batchexec', 'batchmany', 'batchone']: %s",
+				line,
+			)
 		}
 		if len(part) != 4 {
 			return "", "", fmt.Errorf("invalid query comment: %s", line)

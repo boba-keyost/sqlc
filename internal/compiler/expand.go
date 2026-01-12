@@ -5,32 +5,36 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/source"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/source"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
 )
 
 func (c *Compiler) expand(qc *QueryCatalog, raw *ast.RawStmt) ([]source.Edit, error) {
 	// Return early if there are no A_Star nodes to expand
-	stars := astutils.Search(raw, func(node ast.Node) bool {
-		_, ok := node.(*ast.A_Star)
-		return ok
-	})
+	stars := astutils.Search(
+		raw, func(node ast.Node) bool {
+			_, ok := node.(*ast.A_Star)
+			return ok
+		},
+	)
 	if len(stars.Items) == 0 {
 		return nil, nil
 	}
-	list := astutils.Search(raw, func(node ast.Node) bool {
-		switch node.(type) {
-		case *ast.DeleteStmt:
-		case *ast.InsertStmt:
-		case *ast.SelectStmt:
-		case *ast.UpdateStmt:
-		default:
-			return false
-		}
-		return true
-	})
+	list := astutils.Search(
+		raw, func(node ast.Node) bool {
+			switch node.(type) {
+			case *ast.DeleteStmt:
+			case *ast.InsertStmt:
+			case *ast.SelectStmt:
+			case *ast.UpdateStmt:
+			default:
+				return false
+			}
+			return true
+		},
+	)
 	if len(list.Items) == 0 {
 		return nil, nil
 	}
@@ -191,12 +195,14 @@ func (c *Compiler) expandStmt(qc *QueryCatalog, raw *ast.RawStmt, node ast.Node)
 			}
 		}
 
-		edits = append(edits, source.Edit{
-			Location: res.Location - raw.StmtLocation,
-			Old:      oldString,
-			OldFunc:  oldFunc,
-			New:      strings.Join(cols, ", "),
-		})
+		edits = append(
+			edits, source.Edit{
+				Location: res.Location - raw.StmtLocation,
+				Old:      oldString,
+				OldFunc:  oldFunc,
+				New:      strings.Join(cols, ", "),
+			},
+		)
 	}
 
 	return edits, nil

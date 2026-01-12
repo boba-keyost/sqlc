@@ -10,10 +10,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/sqlc-dev/sqlc/internal/codegen/golang/opts"
-	"github.com/sqlc-dev/sqlc/internal/codegen/sdk"
-	"github.com/sqlc-dev/sqlc/internal/metadata"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/codegen/golang/opts"
+	"github.com/boba-keyost/sqlc/internal/codegen/sdk"
+	"github.com/boba-keyost/sqlc/internal/metadata"
+	"github.com/boba-keyost/sqlc/internal/plugin"
 )
 
 type tmplCtx struct {
@@ -163,7 +163,13 @@ func validate(options *opts.Options, enums []Enum, structs []Struct, queries []Q
 	return nil
 }
 
-func generate(req *plugin.GenerateRequest, options *opts.Options, enums []Enum, structs []Struct, queries []Query) (*plugin.GenerateResponse, error) {
+func generate(
+	req *plugin.GenerateRequest,
+	options *opts.Options,
+	enums []Enum,
+	structs []Struct,
+	queries []Query,
+) (*plugin.GenerateResponse, error) {
 	i := &importer{
 		Options: options,
 		Queries: queries,
@@ -324,10 +330,12 @@ func generate(req *plugin.GenerateRequest, options *opts.Options, enums []Enum, 
 	resp := plugin.GenerateResponse{}
 
 	for filename, code := range output {
-		resp.Files = append(resp.Files, &plugin.File{
-			Name:     filename,
-			Contents: []byte(code),
-		})
+		resp.Files = append(
+			resp.Files, &plugin.File{
+				Name:     filename,
+				Contents: []byte(code),
+			},
+		)
 	}
 
 	return &resp, nil

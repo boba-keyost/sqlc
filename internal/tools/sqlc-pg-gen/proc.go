@@ -53,15 +53,17 @@ func (p *Proc) Args() []Arg {
 			name = p.ArgNames[i]
 		}
 
-		args = append(args, Arg{
-			Name:       name,
-			Type:       argType,
-			Mode:       mode,
-			HasDefault: defaults[name],
-		})
+		args = append(
+			args, Arg{
+				Name:       name,
+				Type:       argType,
+				Mode:       mode,
+				HasDefault: defaults[name],
+			},
+		)
 	}
 
-	// Some manual changes until https://github.com/sqlc-dev/sqlc/pull/1748
+	// Some manual changes until https://github.com/boba-keyost/sqlc/pull/1748
 	// can be completely implmented
 	if p.Name == "mode" {
 		return nil

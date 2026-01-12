@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/pgx/poolcache"
-	"github.com/sqlc-dev/sqlc/internal/shfmt"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/pgx/poolcache"
+	"github.com/boba-keyost/sqlc/internal/shfmt"
 )
 
 type CreateDatabaseRequest struct {
@@ -47,7 +47,10 @@ func dbid(migrations []string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (m *ManagedClient) CreateDatabase(ctx context.Context, req *CreateDatabaseRequest) (*CreateDatabaseResponse, error) {
+func (m *ManagedClient) CreateDatabase(ctx context.Context, req *CreateDatabaseRequest) (
+	*CreateDatabaseResponse,
+	error,
+) {
 	hash := dbid(req.Migrations)
 	prefix := req.Prefix
 	if prefix == "" {
@@ -90,45 +93,49 @@ func (m *ManagedClient) CreateDatabase(ctx context.Context, req *CreateDatabaseR
 	uri.Path = "/" + name
 
 	key := uri.String()
-	_, err, _ = flight.Do(key, func() (interface{}, error) {
-		// TODO: Use a parameterized query
-		row := pool.QueryRow(ctx,
-			fmt.Sprintf(`SELECT datname FROM pg_database WHERE datname = '%s'`, name))
+	_, err, _ = flight.Do(
+		key, func() (interface{}, error) {
+			// TODO: Use a parameterized query
+			row := pool.QueryRow(
+				ctx,
+				fmt.Sprintf(`SELECT datname FROM pg_database WHERE datname = '%s'`, name),
+			)
 
-		var datname string
-		if err := row.Scan(&datname); err == nil {
+			var datname string
+			if err := row.Scan(&datname); err == nil {
+				return nil, nil
+			}
+
+			if _, err := pool.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s"`, name)); err != nil {
+				return nil, err
+			}
+
+			conn, err := pgx.Connect(ctx, uri.String())
+			if err != nil {
+				pool.Exec(ctx, fmt.Sprintf(`DROP DATABASE IF EXISTS "%s" WITH (FORCE)`, name))
+				return nil, fmt.Errorf("connect %s: %s", name, err)
+			}
+			defer conn.Close(ctx)
+
+			var migrationErr error
+			for _, q := range req.Migrations {
+				if len(strings.TrimSpace(q)) == 0 {
+					continue
+				}
+				if _, err := conn.Exec(ctx, q); err != nil {
+					migrationErr = fmt.Errorf("%s: %s", q, err)
+					break
+				}
+			}
+
+			if migrationErr != nil {
+				pool.Exec(ctx, fmt.Sprintf(`DROP DATABASE IF EXISTS "%s" WITH (FORCE)`, name))
+				return nil, migrationErr
+			}
+
 			return nil, nil
-		}
-
-		if _, err := pool.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s"`, name)); err != nil {
-			return nil, err
-		}
-
-		conn, err := pgx.Connect(ctx, uri.String())
-		if err != nil {
-			pool.Exec(ctx, fmt.Sprintf(`DROP DATABASE IF EXISTS "%s" WITH (FORCE)`, name))
-			return nil, fmt.Errorf("connect %s: %s", name, err)
-		}
-		defer conn.Close(ctx)
-
-		var migrationErr error
-		for _, q := range req.Migrations {
-			if len(strings.TrimSpace(q)) == 0 {
-				continue
-			}
-			if _, err := conn.Exec(ctx, q); err != nil {
-				migrationErr = fmt.Errorf("%s: %s", q, err)
-				break
-			}
-		}
-
-		if migrationErr != nil {
-			pool.Exec(ctx, fmt.Sprintf(`DROP DATABASE IF EXISTS "%s" WITH (FORCE)`, name))
-			return nil, migrationErr
-		}
-
-		return nil, nil
-	})
+		},
+	)
 
 	if err != nil {
 		return nil, err

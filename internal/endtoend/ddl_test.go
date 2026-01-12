@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func TestValidSchema(t *testing.T) {
@@ -41,21 +41,23 @@ func TestValidSchema(t *testing.T) {
 			default:
 				continue
 			}
-			t.Run(fmt.Sprintf("endtoend-%s-%d", file, j), func(t *testing.T) {
-				t.Parallel()
+			t.Run(
+				fmt.Sprintf("endtoend-%s-%d", file, j), func(t *testing.T) {
+					t.Parallel()
 
-				var schema []string
-				for _, path := range pkg.Schema {
-					schema = append(schema, filepath.Join(filepath.Dir(file), path))
-				}
+					var schema []string
+					for _, path := range pkg.Schema {
+						schema = append(schema, filepath.Join(filepath.Dir(file), path))
+					}
 
-				switch pkg.Engine {
-				case config.EnginePostgreSQL:
-					local.PostgreSQL(t, schema)
-				case config.EngineMySQL:
-					local.MySQL(t, schema)
-				}
-			})
+					switch pkg.Engine {
+					case config.EnginePostgreSQL:
+						local.PostgreSQL(t, schema)
+					case config.EngineMySQL:
+						local.MySQL(t, schema)
+					}
+				},
+			)
 		}
 	}
 }

@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func TestAuthors(t *testing.T) {
@@ -31,10 +31,15 @@ func TestAuthors(t *testing.T) {
 	t.Log(authors)
 
 	// create an author
-	result, err := db.CreateAuthor(ctx, CreateAuthorParams{
-		Name: "Brian Kernighan",
-		Bio:  sql.NullString{String: "Co-author of The C Programming Language and The Go Programming Language", Valid: true},
-	})
+	result, err := db.CreateAuthor(
+		ctx, CreateAuthorParams{
+			Name: "Brian Kernighan",
+			Bio:  sql.NullString{
+				String: "Co-author of The C Programming Language and The Go Programming Language",
+				Valid: true,
+			},
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}

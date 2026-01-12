@@ -10,25 +10,29 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/info"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
-	"github.com/sqlc-dev/sqlc/internal/quickdb"
-	pb "github.com/sqlc-dev/sqlc/internal/quickdb/v1"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/info"
+	"github.com/boba-keyost/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/quickdb"
+	pb "github.com/boba-keyost/sqlc/internal/quickdb/v1"
 )
 
-var ErrNoProject = errors.New(`project uploads require a cloud project
+var ErrNoProject = errors.New(
+	`project uploads require a cloud project
 
 If you don't have a project, you can create one from the sqlc Cloud
 dashboard at https://dashboard.sqlc.dev/. If you have a project, ensure
 you've set its id as the value of the "project" field within the "cloud"
 section of your sqlc configuration. The id will look similar to
-"01HA8TWGMYPHK0V2GGMB3R2TP9".`)
-var ErrNoAuthToken = errors.New(`project uploads require an auth token
+"01HA8TWGMYPHK0V2GGMB3R2TP9".`,
+)
+var ErrNoAuthToken = errors.New(
+	`project uploads require an auth token
 
 If you don't have an auth token, you can create one from the sqlc Cloud
 dashboard at https://dashboard.sqlc.dev/. If you have an auth token, ensure
-you've set it as the value of the SQLC_AUTH_TOKEN environment variable.`)
+you've set it as the value of the SQLC_AUTH_TOKEN environment variable.`,
+)
 
 type Uploader struct {
 	configPath string
@@ -86,7 +90,12 @@ func annotate() map[string]string {
 	return labels
 }
 
-func BuildRequest(ctx context.Context, dir, configPath string, results []*QuerySetArchive, tags []string) (*pb.UploadArchiveRequest, error) {
+func BuildRequest(
+	ctx context.Context,
+	dir, configPath string,
+	results []*QuerySetArchive,
+	tags []string,
+) (*pb.UploadArchiveRequest, error) {
 	conf, err := readFile(dir, configPath)
 	if err != nil {
 		return nil, err
@@ -114,20 +123,26 @@ func BuildRequest(ctx context.Context, dir, configPath string, results []*QueryS
 		if err != nil {
 			return nil, err
 		}
-		res.QuerySets = append(res.QuerySets, &pb.QuerySet{
-			Name:    name,
-			Schema:  schema,
-			Queries: queries,
-			CodegenRequest: &pb.File{
-				Name:     "codegen_request.pb",
-				Contents: genreq,
+		res.QuerySets = append(
+			res.QuerySets, &pb.QuerySet{
+				Name:    name,
+				Schema:  schema,
+				Queries: queries,
+				CodegenRequest: &pb.File{
+					Name:     "codegen_request.pb",
+					Contents: genreq,
+				},
 			},
-		})
+		)
 	}
 	return res, nil
 }
 
-func (up *Uploader) buildRequest(ctx context.Context, results []*QuerySetArchive, tags []string) (*pb.UploadArchiveRequest, error) {
+func (up *Uploader) buildRequest(
+	ctx context.Context,
+	results []*QuerySetArchive,
+	tags []string,
+) (*pb.UploadArchiveRequest, error) {
 	return BuildRequest(ctx, up.dir, up.configPath, results, tags)
 }
 

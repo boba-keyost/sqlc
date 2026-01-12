@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sqlc-dev/sqlc/internal/cmd"
-	"github.com/sqlc-dev/sqlc/internal/sqltest"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/cmd"
+	"github.com/boba-keyost/sqlc/internal/sqltest"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func findSchema(t *testing.T, path string) (string, bool) {
@@ -47,36 +47,38 @@ func TestExamplesVet(t *testing.T) {
 			continue
 		}
 		tc := replay.Name()
-		t.Run(tc, func(t *testing.T) {
-			t.Parallel()
-			path := filepath.Join(examples, tc)
+		t.Run(
+			tc, func(t *testing.T) {
+				t.Parallel()
+				path := filepath.Join(examples, tc)
 
-			if tc != "kotlin" && tc != "python" {
-				if s, found := findSchema(t, filepath.Join(path, "sqlite")); found {
-					dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", tc)
-					db, cleanup := sqltest.CreateSQLiteDatabase(t, dsn, []string{s})
-					defer db.Close()
-					defer cleanup()
+				if tc != "kotlin" && tc != "python" {
+					if s, found := findSchema(t, filepath.Join(path, "sqlite")); found {
+						dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", tc)
+						db, cleanup := sqltest.CreateSQLiteDatabase(t, dsn, []string{s})
+						defer db.Close()
+						defer cleanup()
+					}
+					if s, found := findSchema(t, filepath.Join(path, "mysql")); found {
+						uri := local.MySQL(t, []string{s})
+						os.Setenv(fmt.Sprintf("VET_TEST_EXAMPLES_MYSQL_%s", strings.ToUpper(tc)), uri)
+					}
+					if s, found := findSchema(t, filepath.Join(path, "postgresql")); found {
+						uri := local.PostgreSQL(t, []string{s})
+						os.Setenv(fmt.Sprintf("VET_TEST_EXAMPLES_POSTGRES_%s", strings.ToUpper(tc)), uri)
+					}
 				}
-				if s, found := findSchema(t, filepath.Join(path, "mysql")); found {
-					uri := local.MySQL(t, []string{s})
-					os.Setenv(fmt.Sprintf("VET_TEST_EXAMPLES_MYSQL_%s", strings.ToUpper(tc)), uri)
-				}
-				if s, found := findSchema(t, filepath.Join(path, "postgresql")); found {
-					uri := local.PostgreSQL(t, []string{s})
-					os.Setenv(fmt.Sprintf("VET_TEST_EXAMPLES_POSTGRES_%s", strings.ToUpper(tc)), uri)
-				}
-			}
 
-			var stderr bytes.Buffer
-			opts := &cmd.Options{
-				Stderr: &stderr,
-				Env:    cmd.Env{},
-			}
-			err := cmd.Vet(ctx, path, "", opts)
-			if err != nil {
-				t.Fatalf("sqlc vet failed: %s %s", err, stderr.String())
-			}
-		})
+				var stderr bytes.Buffer
+				opts := &cmd.Options{
+					Stderr: &stderr,
+					Env:    cmd.Env{},
+				}
+				err := cmd.Vet(ctx, path, "", opts)
+				if err != nil {
+					t.Fatalf("sqlc vet failed: %s %s", err, stderr.String())
+				}
+			},
+		)
 	}
 }

@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func join(vals ...string) sql.NullString {
@@ -27,10 +27,12 @@ func join(vals ...string) sql.NullString {
 func runOnDeckQueries(t *testing.T, q *Queries) {
 	ctx := context.Background()
 
-	err := q.CreateCity(ctx, CreateCityParams{
-		Slug: "san-francisco",
-		Name: "San Francisco",
-	})
+	err := q.CreateCity(
+		ctx, CreateCityParams{
+			Slug: "san-francisco",
+			Name: "San Francisco",
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,15 +42,17 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 		t.Fatal(err)
 	}
 
-	venueResult, err := q.CreateVenue(ctx, CreateVenueParams{
-		Slug:            "the-fillmore",
-		Name:            "The Fillmore",
-		City:            city.Slug,
-		SpotifyPlaylist: "spotify:uri",
-		Status:          VenueStatusOpen,
-		Statuses:        join(string(VenueStatusOpen), string(VenueStatusClosed)),
-		Tags:            join("rock", "punk"),
-	})
+	venueResult, err := q.CreateVenue(
+		ctx, CreateVenueParams{
+			Slug:            "the-fillmore",
+			Name:            "The Fillmore",
+			City:            city.Slug,
+			SpotifyPlaylist: "spotify:uri",
+			Status:          VenueStatusOpen,
+			Statuses:        join(string(VenueStatusOpen), string(VenueStatusClosed)),
+			Tags:            join("rock", "punk"),
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,10 +61,12 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 		t.Fatal(err)
 	}
 
-	venue, err := q.GetVenue(ctx, GetVenueParams{
-		Slug: "the-fillmore",
-		City: city.Slug,
-	})
+	venue, err := q.GetVenue(
+		ctx, GetVenueParams{
+			Slug: "the-fillmore",
+			City: city.Slug,
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,9 +80,11 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 		if err != nil {
 			t.Error(err)
 		}
-		if diff := cmp.Diff(actual, []VenueCountByCityRow{
-			{city.Slug, int64(1)},
-		}); diff != "" {
+		if diff := cmp.Diff(
+			actual, []VenueCountByCityRow{
+				{city.Slug, int64(1)},
+			},
+		); diff != "" {
 			t.Errorf("venue count mismatch:\n%s", diff)
 		}
 	}
@@ -102,10 +110,12 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 	}
 
 	{
-		err := q.UpdateCityName(ctx, UpdateCityNameParams{
-			Slug: city.Slug,
-			Name: "SF",
-		})
+		err := q.UpdateCityName(
+			ctx, UpdateCityNameParams{
+				Slug: city.Slug,
+				Name: "SF",
+			},
+		)
 		if err != nil {
 			t.Error(err)
 		}
@@ -113,27 +123,33 @@ func runOnDeckQueries(t *testing.T, q *Queries) {
 
 	{
 		expected := "Fillmore"
-		err := q.UpdateVenueName(ctx, UpdateVenueNameParams{
-			Slug: venue.Slug,
-			Name: expected,
-		})
+		err := q.UpdateVenueName(
+			ctx, UpdateVenueNameParams{
+				Slug: venue.Slug,
+				Name: expected,
+			},
+		)
 		if err != nil {
 			t.Error(err)
 		}
-		fresh, err := q.GetVenue(ctx, GetVenueParams{
-			Slug: venue.Slug,
-			City: city.Slug,
-		})
+		fresh, err := q.GetVenue(
+			ctx, GetVenueParams{
+				Slug: venue.Slug,
+				City: city.Slug,
+			},
+		)
 		if diff := cmp.Diff(expected, fresh.Name); diff != "" {
 			t.Errorf("update venue mismatch:\n%s", diff)
 		}
 	}
 
 	{
-		err := q.DeleteVenue(ctx, DeleteVenueParams{
-			Slug:   venue.Slug,
-			Slug_2: venue.Slug,
-		})
+		err := q.DeleteVenue(
+			ctx, DeleteVenueParams{
+				Slug:   venue.Slug,
+				Slug_2: venue.Slug,
+			},
+		)
 		if err != nil {
 			t.Error(err)
 		}

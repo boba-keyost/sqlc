@@ -11,15 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	core "github.com/sqlc-dev/sqlc/internal/analysis"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/dbmanager"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/shfmt"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
-	"github.com/sqlc-dev/sqlc/internal/sql/named"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	core "github.com/boba-keyost/sqlc/internal/analysis"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/dbmanager"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/shfmt"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/named"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 type Analyzer struct {
@@ -183,7 +183,13 @@ func parseType(dt string) (string, bool, int) {
 }
 
 // Don't create a database per query
-func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrations []string, ps *named.ParamSet) (*core.Analysis, error) {
+func (a *Analyzer) Analyze(
+	ctx context.Context,
+	n ast.Node,
+	query string,
+	migrations []string,
+	ps *named.ParamSet,
+) (*core.Analysis, error) {
 	extractSqlErr := func(e error) error {
 		var pgErr *pgconn.PgError
 		if errors.As(e, &pgErr) {
@@ -202,10 +208,12 @@ func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrat
 			if a.client == nil {
 				return nil, fmt.Errorf("client is nil")
 			}
-			edb, err := a.client.CreateDatabase(ctx, &dbmanager.CreateDatabaseRequest{
-				Engine:     "postgresql",
-				Migrations: migrations,
-			})
+			edb, err := a.client.CreateDatabase(
+				ctx, &dbmanager.CreateDatabaseRequest{
+					Engine:     "postgresql",
+					Migrations: migrations,
+				},
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -257,18 +265,20 @@ func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrat
 			dt, isArray, dims := parseType(col.DataType)
 			notNull := col.NotNull
 			name := field.Name
-			result.Columns = append(result.Columns, &core.Column{
-				Name:         name,
-				OriginalName: field.Name,
-				DataType:     dt,
-				NotNull:      notNull,
-				IsArray:      isArray,
-				ArrayDims:    int32(max(col.ArrayDims, dims)),
-				Table: &core.Identifier{
-					Schema: tbl.SchemaName,
-					Name:   tbl.TableName,
+			result.Columns = append(
+				result.Columns, &core.Column{
+					Name:         name,
+					OriginalName: field.Name,
+					DataType:     dt,
+					NotNull:      notNull,
+					IsArray:      isArray,
+					ArrayDims:    int32(max(col.ArrayDims, dims)),
+					Table: &core.Identifier{
+						Schema: tbl.SchemaName,
+						Name:   tbl.TableName,
+					},
 				},
-			})
+			)
 		} else {
 			dataType, err := a.formatType(ctx, field.DataTypeOID, field.TypeModifier)
 			if err != nil {
@@ -278,14 +288,16 @@ func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrat
 			notNull := false
 			name := field.Name
 			dt, isArray, dims := parseType(dataType)
-			result.Columns = append(result.Columns, &core.Column{
-				Name:         name,
-				OriginalName: field.Name,
-				DataType:     dt,
-				NotNull:      notNull,
-				IsArray:      isArray,
-				ArrayDims:    int32(dims),
-			})
+			result.Columns = append(
+				result.Columns, &core.Column{
+					Name:         name,
+					OriginalName: field.Name,
+					DataType:     dt,
+					NotNull:      notNull,
+					IsArray:      isArray,
+					ArrayDims:    int32(dims),
+				},
+			)
 		}
 	}
 
@@ -300,16 +312,18 @@ func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrat
 		if ps != nil {
 			name, _ = ps.NameFor(i + 1)
 		}
-		result.Params = append(result.Params, &core.Parameter{
-			Number: int32(i + 1),
-			Column: &core.Column{
-				Name:      name,
-				DataType:  dt,
-				IsArray:   isArray,
-				ArrayDims: int32(dims),
-				NotNull:   notNull,
+		result.Params = append(
+			result.Params, &core.Parameter{
+				Number: int32(i + 1),
+				Column: &core.Column{
+					Name:      name,
+					DataType:  dt,
+					IsArray:   isArray,
+					ArrayDims: int32(dims),
+					NotNull:   notNull,
+				},
 			},
-		})
+		)
 	}
 
 	return &result, nil
@@ -453,13 +467,15 @@ func (a *Analyzer) IntrospectSchema(ctx context.Context, schemas []string) (*cat
 		}
 
 		dt, isArray, dims := parseType(col.DataType)
-		tbl.Columns = append(tbl.Columns, &catalog.Column{
-			Name:      col.ColumnName,
-			Type:      ast.TypeName{Name: dt},
-			IsNotNull: col.NotNull,
-			IsArray:   isArray || col.ArrayDims > 0,
-			ArrayDims: max(dims, col.ArrayDims),
-		})
+		tbl.Columns = append(
+			tbl.Columns, &catalog.Column{
+				Name:      col.ColumnName,
+				Type:      ast.TypeName{Name: dt},
+				IsNotNull: col.NotNull,
+				IsArray:   isArray || col.ArrayDims > 0,
+				ArrayDims: max(dims, col.ArrayDims),
+			},
+		)
 	}
 
 	// Group enum values by type
@@ -494,10 +510,12 @@ func (a *Analyzer) EnsureConn(ctx context.Context, migrations []string) error {
 		if a.client == nil {
 			return fmt.Errorf("client is nil")
 		}
-		edb, err := a.client.CreateDatabase(ctx, &dbmanager.CreateDatabaseRequest{
-			Engine:     "postgresql",
-			Migrations: migrations,
-		})
+		edb, err := a.client.CreateDatabase(
+			ctx, &dbmanager.CreateDatabaseRequest{
+				Engine:     "postgresql",
+				Migrations: migrations,
+			},
+		)
 		if err != nil {
 			return err
 		}

@@ -5,12 +5,12 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
-	"github.com/sqlc-dev/sqlc/internal/sql/named"
-	"github.com/sqlc-dev/sqlc/internal/sql/rewrite"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/named"
+	"github.com/boba-keyost/sqlc/internal/sql/rewrite"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 func dataType(n *ast.TypeName) string {

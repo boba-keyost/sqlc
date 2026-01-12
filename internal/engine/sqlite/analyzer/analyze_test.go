@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
 )
 
 func TestAnalyzer_Analyze(t *testing.T) {
@@ -109,11 +109,13 @@ func TestNormalizeType(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			result := normalizeType(tt.input)
-			if result != tt.expected {
-				t.Errorf("normalizeType(%q) = %q, want %q", tt.input, result, tt.expected)
-			}
-		})
+		t.Run(
+			tt.input, func(t *testing.T) {
+				result := normalizeType(tt.input)
+				if result != tt.expected {
+					t.Errorf("normalizeType(%q) = %q, want %q", tt.input, result, tt.expected)
+				}
+			},
+		)
 	}
 }

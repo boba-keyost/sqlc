@@ -5,7 +5,7 @@
 package override
 
 import (
-	"github.com/sqlc-dev/sqlc-testdata/pkg"
+	"github.com/boba-keyost/sqlc-testdata/pkg"
 )
 
 type Bar struct {

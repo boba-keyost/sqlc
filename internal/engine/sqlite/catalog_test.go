@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -232,38 +232,45 @@ func TestUpdate(t *testing.T) {
 		},
 	} {
 		test := tc
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			stmts, err := p.Parse(strings.NewReader(test.stmt))
-			if err != nil {
-				t.Log(test.stmt)
-				t.Fatal(err)
-			}
+		t.Run(
+			strconv.Itoa(i), func(t *testing.T) {
+				stmts, err := p.Parse(strings.NewReader(test.stmt))
+				if err != nil {
+					t.Log(test.stmt)
+					t.Fatal(err)
+				}
 
-			c := newTestCatalog()
-			if err := c.Build(stmts); err != nil {
-				t.Log(test.stmt)
-				t.Fatal(err)
-			}
+				c := newTestCatalog()
+				if err := c.Build(stmts); err != nil {
+					t.Log(test.stmt)
+					t.Fatal(err)
+				}
 
-			e := newTestCatalog()
-			if test.s != nil {
-				var replaced bool
-				for i := range e.Schemas {
-					if e.Schemas[i].Name == test.s.Name {
-						e.Schemas[i] = test.s
-						replaced = true
-						break
+				e := newTestCatalog()
+				if test.s != nil {
+					var replaced bool
+					for i := range e.Schemas {
+						if e.Schemas[i].Name == test.s.Name {
+							e.Schemas[i] = test.s
+							replaced = true
+							break
+						}
+					}
+					if !replaced {
+						e.Schemas = append(e.Schemas, test.s)
 					}
 				}
-				if !replaced {
-					e.Schemas = append(e.Schemas, test.s)
-				}
-			}
 
-			if diff := cmp.Diff(e, c, cmpopts.EquateEmpty(), cmpopts.IgnoreUnexported(catalog.Column{})); diff != "" {
-				t.Log(test.stmt)
-				t.Errorf("catalog mismatch:\n%s", diff)
-			}
-		})
+				if diff := cmp.Diff(
+					e,
+					c,
+					cmpopts.EquateEmpty(),
+					cmpopts.IgnoreUnexported(catalog.Column{}),
+				); diff != "" {
+					t.Log(test.stmt)
+					t.Errorf("catalog mismatch:\n%s", diff)
+				}
+			},
+		)
 	}
 }

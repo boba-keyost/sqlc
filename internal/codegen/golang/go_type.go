@@ -3,12 +3,17 @@ package golang
 import (
 	"strings"
 
-	"github.com/sqlc-dev/sqlc/internal/codegen/golang/opts"
-	"github.com/sqlc-dev/sqlc/internal/codegen/sdk"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/codegen/golang/opts"
+	"github.com/boba-keyost/sqlc/internal/codegen/sdk"
+	"github.com/boba-keyost/sqlc/internal/plugin"
 )
 
-func addExtraGoStructTags(tags map[string]string, req *plugin.GenerateRequest, options *opts.Options, col *plugin.Column) {
+func addExtraGoStructTags(
+	tags map[string]string,
+	req *plugin.GenerateRequest,
+	options *opts.Options,
+	col *plugin.Column,
+) {
 	for _, override := range options.Overrides {
 		oride := override.ShimOverride
 		if oride.GoType.StructTags == nil {

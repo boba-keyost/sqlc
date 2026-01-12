@@ -3,7 +3,7 @@ package ast
 import (
 	"strings"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/format"
+	"github.com/boba-keyost/sqlc/internal/sql/format"
 )
 
 type ColumnRef struct {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
 
 	"github.com/jackc/pgx/v4"
 )

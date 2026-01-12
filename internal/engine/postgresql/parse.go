@@ -8,10 +8,10 @@ import (
 
 	nodes "github.com/pganalyze/pg_query_go/v6"
 
-	"github.com/sqlc-dev/sqlc/internal/engine/postgresql/parser"
-	"github.com/sqlc-dev/sqlc/internal/source"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/engine/postgresql/parser"
+	"github.com/boba-keyost/sqlc/internal/source"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 func stringSlice(list *nodes.List) []string {
@@ -125,7 +125,10 @@ func parseColName(node *nodes.Node) (*ast.ColumnRef, *ast.TableName, error) {
 			tbl = &ast.TableName{Catalog: parts[0], Schema: parts[1], Name: parts[2]}
 			ref = &ast.ColumnRef{Name: parts[3]}
 		default:
-			return nil, nil, fmt.Errorf("column specifier %q is not the proper format, expected '[catalog.][schema.]colname.tablename'", strings.Join(parts, "."))
+			return nil, nil, fmt.Errorf(
+				"column specifier %q is not the proper format, expected '[catalog.][schema.]colname.tablename'",
+				strings.Join(parts, "."),
+			)
 		}
 		return ref, tbl, nil
 	default:
@@ -169,13 +172,15 @@ func (p *Parser) Parse(r io.Reader) ([]ast.Statement, error) {
 		if n == nil {
 			return nil, fmt.Errorf("unexpected nil node")
 		}
-		stmts = append(stmts, ast.Statement{
-			Raw: &ast.RawStmt{
-				Stmt:         n,
-				StmtLocation: int(raw.StmtLocation),
-				StmtLen:      int(raw.StmtLen),
+		stmts = append(
+			stmts, ast.Statement{
+				Raw: &ast.RawStmt{
+					Stmt:         n,
+					StmtLocation: int(raw.StmtLocation),
+					StmtLen:      int(raw.StmtLen),
+				},
 			},
-		})
+		)
 	}
 	return stmts, nil
 }
@@ -443,14 +448,16 @@ func translate(node *nodes.Node) (ast.Node, error) {
 					}
 				}
 
-				create.Cols = append(create.Cols, &ast.ColumnDef{
-					Colname:    item.ColumnDef.Colname,
-					TypeName:   rel.TypeName(),
-					IsNotNull:  isNotNull(item.ColumnDef) || primaryKey[item.ColumnDef.Colname],
-					IsArray:    isArray(item.ColumnDef.TypeName),
-					ArrayDims:  len(item.ColumnDef.TypeName.ArrayBounds),
-					PrimaryKey: primary,
-				})
+				create.Cols = append(
+					create.Cols, &ast.ColumnDef{
+						Colname:    item.ColumnDef.Colname,
+						TypeName:   rel.TypeName(),
+						IsNotNull:  isNotNull(item.ColumnDef) || primaryKey[item.ColumnDef.Colname],
+						IsArray:    isArray(item.ColumnDef.TypeName),
+						ArrayDims:  len(item.ColumnDef.TypeName.ArrayBounds),
+						PrimaryKey: primary,
+					},
+				)
 			}
 		}
 		return create, nil
@@ -468,9 +475,11 @@ func translate(node *nodes.Node) (ast.Node, error) {
 		for _, val := range n.Vals {
 			switch v := val.Node.(type) {
 			case *nodes.Node_String_:
-				stmt.Vals.Items = append(stmt.Vals.Items, &ast.String{
-					Str: v.String_.Sval,
-				})
+				stmt.Vals.Items = append(
+					stmt.Vals.Items, &ast.String{
+						Str: v.String_.Sval,
+					},
+				)
 			}
 		}
 		return stmt, nil
@@ -555,11 +564,13 @@ func translate(node *nodes.Node) (ast.Node, error) {
 					}
 					args[i] = at.TypeName()
 				}
-				drop.Funcs = append(drop.Funcs, &ast.FuncSpec{
-					Name:    fn.FuncName(),
-					Args:    args,
-					HasArgs: !owa.ArgsUnspecified,
-				})
+				drop.Funcs = append(
+					drop.Funcs, &ast.FuncSpec{
+						Name:    fn.FuncName(),
+						Args:    args,
+						HasArgs: !owa.ArgsUnspecified,
+					},
+				)
 			}
 			return drop, nil
 

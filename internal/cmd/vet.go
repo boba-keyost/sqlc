@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sqlc-dev/sqlc/internal/constants"
+	"github.com/boba-keyost/sqlc/internal/constants"
 	"io"
 	"log"
 	"os"
@@ -24,16 +24,16 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/dbmanager"
-	"github.com/sqlc-dev/sqlc/internal/debug"
-	"github.com/sqlc-dev/sqlc/internal/migrations"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
-	"github.com/sqlc-dev/sqlc/internal/quickdb"
-	"github.com/sqlc-dev/sqlc/internal/shfmt"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
-	"github.com/sqlc-dev/sqlc/internal/vet"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/dbmanager"
+	"github.com/boba-keyost/sqlc/internal/debug"
+	"github.com/boba-keyost/sqlc/internal/migrations"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/quickdb"
+	"github.com/boba-keyost/sqlc/internal/shfmt"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/vet"
 )
 
 var ErrFailedChecks = errors.New("failed checks")
@@ -91,16 +91,20 @@ func Vet(ctx context.Context, dir, filename string, opts *Options) error {
 			&vet.PostgreSQL{},
 			&vet.MySQL{},
 		),
-		cel.Variable("query",
+		cel.Variable(
+			"query",
 			cel.ObjectType("vet.Query"),
 		),
-		cel.Variable("config",
+		cel.Variable(
+			"config",
 			cel.ObjectType("vet.Config"),
 		),
-		cel.Variable("postgresql",
+		cel.Variable(
+			"postgresql",
 			cel.ObjectType("vet.PostgreSQL"),
 		),
-		cel.Variable("mysql",
+		cel.Variable(
+			"mysql",
 			cel.ObjectType("vet.MySQL"),
 		),
 	)
@@ -347,7 +351,10 @@ type mysqlExplainer struct {
 	*sql.DB
 }
 
-func (me *mysqlExplainer) Explain(ctx context.Context, query string, args ...*plugin.Parameter) (*vetEngineOutput, error) {
+func (me *mysqlExplainer) Explain(ctx context.Context, query string, args ...*plugin.Parameter) (
+	*vetEngineOutput,
+	error,
+) {
 	eQuery := "EXPLAIN FORMAT=JSON " + query
 	eArgs := make([]any, len(args))
 	for i, a := range args {
@@ -418,9 +425,11 @@ func (c *checker) fetchDatabaseUri(ctx context.Context, s config.SQL) (string, f
 	}
 
 	// Initialize the client exactly once, even if called concurrently
-	c.clientOnce.Do(func() {
-		c.Client = dbmanager.NewClient(c.Conf.Servers)
-	})
+	c.clientOnce.Do(
+		func() {
+			c.Client = dbmanager.NewClient(c.Conf.Servers)
+		},
+	)
 
 	var ddl []string
 	files, err := sqlpath.Glob(s.Schema)
@@ -435,10 +444,12 @@ func (c *checker) fetchDatabaseUri(ctx context.Context, s config.SQL) (string, f
 		ddl = append(ddl, migrations.RemoveRollbackStatements(string(contents)))
 	}
 
-	resp, err := c.Client.CreateDatabase(ctx, &dbmanager.CreateDatabaseRequest{
-		Engine:     string(s.Engine),
-		Migrations: ddl,
-	})
+	resp, err := c.Client.CreateDatabase(
+		ctx, &dbmanager.CreateDatabaseRequest{
+			Engine:     string(s.Engine),
+			Migrations: ddl,
+		},
+	)
 	if err != nil {
 		return "", cleanup, fmt.Errorf("managed: create database: %w", err)
 	}
@@ -581,7 +592,13 @@ func (c *checker) checkSQL(ctx context.Context, s config.SQL) error {
 			// Rules which are listed to be disabled but not declared in the config file are rejected.
 			for r := range md.RuleSkiplist {
 				if !slices.Contains(s.Rules, r) {
-					fmt.Fprintf(c.Stderr, "%s: %s: rule-check error: rule %q does not exist in the config file\n", query.Filename, query.Name, r)
+					fmt.Fprintf(
+						c.Stderr,
+						"%s: %s: rule-check error: rule %q does not exist in the config file\n",
+						query.Filename,
+						query.Name,
+						r,
+					)
 					errored = true
 				}
 			}
@@ -605,13 +622,26 @@ func (c *checker) checkSQL(ctx context.Context, s config.SQL) error {
 
 				if rule.NeedsPrepare {
 					if prep == nil {
-						fmt.Fprintf(c.Stderr, "%s: %s: %s: error preparing query: database connection required\n", query.Filename, query.Name, name)
+						fmt.Fprintf(
+							c.Stderr,
+							"%s: %s: %s: error preparing query: database connection required\n",
+							query.Filename,
+							query.Name,
+							name,
+						)
 						errored = true
 						continue
 					}
 					prepName := fmt.Sprintf("sqlc_vet_%d_%d", time.Now().Unix(), i)
 					if err := prep.Prepare(ctx, prepName, query.Text); err != nil {
-						fmt.Fprintf(c.Stderr, "%s: %s: %s: error preparing query: %s\n", query.Filename, query.Name, name, err)
+						fmt.Fprintf(
+							c.Stderr,
+							"%s: %s: %s: error preparing query: %s\n",
+							query.Filename,
+							query.Name,
+							name,
+							err,
+						)
 						errored = true
 						continue
 					}
@@ -627,13 +657,26 @@ func (c *checker) checkSQL(ctx context.Context, s config.SQL) error {
 				_, mysqlOK := evalMap["mysql"]
 				if rule.NeedsExplain && !(pgsqlOK || mysqlOK) {
 					if expl == nil {
-						fmt.Fprintf(c.Stderr, "%s: %s: %s: error explaining query: database connection required\n", query.Filename, query.Name, name)
+						fmt.Fprintf(
+							c.Stderr,
+							"%s: %s: %s: error explaining query: database connection required\n",
+							query.Filename,
+							query.Name,
+							name,
+						)
 						errored = true
 						continue
 					}
 					engineOutput, err := expl.Explain(ctx, query.Text, query.Params...)
 					if err != nil {
-						fmt.Fprintf(c.Stderr, "%s: %s: %s: error explaining query: %s\n", query.Filename, query.Name, name, err)
+						fmt.Fprintf(
+							c.Stderr,
+							"%s: %s: %s: error explaining query: %s\n",
+							query.Filename,
+							query.Name,
+							name,
+							err,
+						)
 						errored = true
 						continue
 					}
@@ -686,9 +729,11 @@ func vetConfig(req *plugin.GenerateRequest) *vet.Config {
 func vetQuery(q *plugin.Query) *vet.Query {
 	var params []*vet.Parameter
 	for _, p := range q.Params {
-		params = append(params, &vet.Parameter{
-			Number: p.Number,
-		})
+		params = append(
+			params, &vet.Parameter{
+				Number: p.Number,
+			},
+		)
 	}
 	return &vet.Query{
 		Sql:    q.Text,

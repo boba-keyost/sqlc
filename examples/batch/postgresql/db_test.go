@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func TestBatchBooks(t *testing.T) {
@@ -75,13 +75,15 @@ func TestBatchBooks(t *testing.T) {
 	}
 	newBooks := make([]Book, len(newBooksParams))
 	var cnt int
-	dq.CreateBook(ctx, newBooksParams).QueryRow(func(i int, b Book, err error) {
-		if err != nil {
-			t.Fatalf("failed inserting book (%s): %s", b.Title, err)
-		}
-		newBooks[i] = b
-		cnt = i
-	})
+	dq.CreateBook(ctx, newBooksParams).QueryRow(
+		func(i int, b Book, err error) {
+			if err != nil {
+				t.Fatalf("failed inserting book (%s): %s", b.Title, err)
+			}
+			newBooks[i] = b
+			cnt = i
+		},
+	)
 	// first i was 0, so add 1
 	cnt++
 	numBooksExpected := len(newBooks)
@@ -97,25 +99,35 @@ func TestBatchBooks(t *testing.T) {
 			Tags:   []string{"cool", "disastor"},
 		},
 	}
-	dq.UpdateBook(ctx, updateBooksParams).Exec(func(i int, err error) {
-		if err != nil {
-			t.Fatalf("error updating book %d: %s", updateBooksParams[i].BookID, err)
-		}
-	})
+	dq.UpdateBook(ctx, updateBooksParams).Exec(
+		func(i int, err error) {
+			if err != nil {
+				t.Fatalf("error updating book %d: %s", updateBooksParams[i].BookID, err)
+			}
+		},
+	)
 
 	// batch many to retrieve books by year
 	selectBooksByTitleYearParams := []int32{2001, 2016}
 	var books0 []Book
-	dq.BooksByYear(ctx, selectBooksByTitleYearParams).Query(func(i int, books []Book, err error) {
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Logf("num books for %d: %d", selectBooksByTitleYearParams[i], len(books))
-		books0 = append(books0, books...)
-	})
+	dq.BooksByYear(ctx, selectBooksByTitleYearParams).Query(
+		func(i int, books []Book, err error) {
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Logf("num books for %d: %d", selectBooksByTitleYearParams[i], len(books))
+			books0 = append(books0, books...)
+		},
+	)
 
 	for _, book := range books0 {
-		t.Logf("Book %d (%s): %s available: %s\n", book.BookID, book.BookType, book.Title, book.Available.Time.Format(time.RFC822Z))
+		t.Logf(
+			"Book %d (%s): %s available: %s\n",
+			book.BookID,
+			book.BookType,
+			book.Title,
+			book.Available.Time.Format(time.RFC822Z),
+		)
 		author, err := dq.GetAuthor(ctx, book.AuthorID)
 		if err != nil {
 			t.Fatal(err)
@@ -131,23 +143,29 @@ func TestBatchBooks(t *testing.T) {
 	batchDelete := dq.DeleteBook(ctx, deleteBooksParams)
 	numDeletesProcessed := 0
 	wantNumDeletesProcessed := 2
-	batchDelete.Exec(func(i int, err error) {
-		if err != nil && err.Error() != "batch already closed" {
-			t.Fatalf("error deleting book %d: %s", deleteBooksParams[i], err)
-		}
-
-		if err == nil {
-			numDeletesProcessed++
-		}
-
-		if i == wantNumDeletesProcessed-1 {
-			// close batch operation before processing all errors from delete operation
-			if err := batchDelete.Close(); err != nil {
-				t.Fatalf("failed to close batch operation: %s", err)
+	batchDelete.Exec(
+		func(i int, err error) {
+			if err != nil && err.Error() != "batch already closed" {
+				t.Fatalf("error deleting book %d: %s", deleteBooksParams[i], err)
 			}
-		}
-	})
+
+			if err == nil {
+				numDeletesProcessed++
+			}
+
+			if i == wantNumDeletesProcessed-1 {
+				// close batch operation before processing all errors from delete operation
+				if err := batchDelete.Close(); err != nil {
+					t.Fatalf("failed to close batch operation: %s", err)
+				}
+			}
+		},
+	)
 	if numDeletesProcessed != wantNumDeletesProcessed {
-		t.Fatalf("expected Close to short-circuit record processing (expected %d; got %d)", wantNumDeletesProcessed, numDeletesProcessed)
+		t.Fatalf(
+			"expected Close to short-circuit record processing (expected %d; got %d)",
+			wantNumDeletesProcessed,
+			numDeletesProcessed,
+		)
 	}
 }

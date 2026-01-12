@@ -10,9 +10,9 @@ import (
 	"github.com/pingcap/tidb/pkg/parser"
 	_ "github.com/pingcap/tidb/pkg/parser/test_driver"
 
-	"github.com/sqlc-dev/sqlc/internal/source"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/source"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 func NewParser() *Parser {
@@ -74,13 +74,15 @@ func (p *Parser) Parse(r io.Reader) ([]ast.Statement, error) {
 			stmtLen -= 1 // Subtract one to remove semicolon
 		}
 
-		stmts = append(stmts, ast.Statement{
-			Raw: &ast.RawStmt{
-				Stmt:         out,
-				StmtLocation: loc,
-				StmtLen:      stmtLen,
+		stmts = append(
+			stmts, ast.Statement{
+				Raw: &ast.RawStmt{
+					Stmt:         out,
+					StmtLocation: loc,
+					StmtLen:      stmtLen,
+				},
 			},
-		})
+		)
 	}
 	return stmts, nil
 }

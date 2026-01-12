@@ -12,11 +12,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/sync/singleflight"
 
-	migrate "github.com/sqlc-dev/sqlc/internal/migrations"
-	"github.com/sqlc-dev/sqlc/internal/pgx/poolcache"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/docker"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/native"
+	migrate "github.com/boba-keyost/sqlc/internal/migrations"
+	"github.com/boba-keyost/sqlc/internal/pgx/poolcache"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/sqltest/docker"
+	"github.com/boba-keyost/sqlc/internal/sqltest/native"
 )
 
 var flight singleflight.Group
@@ -91,43 +91,49 @@ func postgreSQL(t *testing.T, migrations []string, rw bool) string {
 
 	key := uri.String()
 
-	_, err, _ = flight.Do(key, func() (interface{}, error) {
-		row := postgresPool.QueryRow(ctx,
-			fmt.Sprintf(`SELECT datname FROM pg_database WHERE datname = '%s'`, name))
+	_, err, _ = flight.Do(
+		key, func() (interface{}, error) {
+			row := postgresPool.QueryRow(
+				ctx,
+				fmt.Sprintf(`SELECT datname FROM pg_database WHERE datname = '%s'`, name),
+			)
 
-		var datname string
-		if err := row.Scan(&datname); err == nil {
-			t.Logf("database exists: %s", name)
+			var datname string
+			if err := row.Scan(&datname); err == nil {
+				t.Logf("database exists: %s", name)
+				return nil, nil
+			}
+
+			t.Logf("creating database: %s", name)
+			if _, err := postgresPool.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s"`, name)); err != nil {
+				return nil, err
+			}
+
+			conn, err := pgx.Connect(ctx, uri.String())
+			if err != nil {
+				return nil, fmt.Errorf("connect %s: %s", name, err)
+			}
+			defer conn.Close(ctx)
+
+			for _, q := range seed {
+				if len(strings.TrimSpace(q)) == 0 {
+					continue
+				}
+				if _, err := conn.Exec(ctx, q); err != nil {
+					return nil, fmt.Errorf("%s: %s", q, err)
+				}
+			}
 			return nil, nil
-		}
-
-		t.Logf("creating database: %s", name)
-		if _, err := postgresPool.Exec(ctx, fmt.Sprintf(`CREATE DATABASE "%s"`, name)); err != nil {
-			return nil, err
-		}
-
-		conn, err := pgx.Connect(ctx, uri.String())
-		if err != nil {
-			return nil, fmt.Errorf("connect %s: %s", name, err)
-		}
-		defer conn.Close(ctx)
-
-		for _, q := range seed {
-			if len(strings.TrimSpace(q)) == 0 {
-				continue
-			}
-			if _, err := conn.Exec(ctx, q); err != nil {
-				return nil, fmt.Errorf("%s: %s", q, err)
-			}
-		}
-		return nil, nil
-	})
+		},
+	)
 	if rw || err != nil {
-		t.Cleanup(func() {
-			if _, err := postgresPool.Exec(ctx, dropQuery); err != nil {
-				t.Fatalf("failed cleaning up: %s", err)
-			}
-		})
+		t.Cleanup(
+			func() {
+				if _, err := postgresPool.Exec(ctx, dropQuery); err != nil {
+					t.Fatalf("failed cleaning up: %s", err)
+				}
+			},
+		)
 	}
 	if err != nil {
 		t.Fatalf("create db: %s", err)

@@ -15,21 +15,21 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
-	"github.com/sqlc-dev/sqlc/internal/codegen/golang"
-	genjson "github.com/sqlc-dev/sqlc/internal/codegen/json"
-	"github.com/sqlc-dev/sqlc/internal/compiler"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/config/convert"
-	"github.com/sqlc-dev/sqlc/internal/debug"
-	"github.com/sqlc-dev/sqlc/internal/ext"
-	"github.com/sqlc-dev/sqlc/internal/ext/process"
-	"github.com/sqlc-dev/sqlc/internal/ext/wasm"
-	"github.com/sqlc-dev/sqlc/internal/info"
-	"github.com/sqlc-dev/sqlc/internal/multierr"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
-	"github.com/sqlc-dev/sqlc/internal/remote"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/codegen/golang"
+	genjson "github.com/boba-keyost/sqlc/internal/codegen/json"
+	"github.com/boba-keyost/sqlc/internal/compiler"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/config/convert"
+	"github.com/boba-keyost/sqlc/internal/debug"
+	"github.com/boba-keyost/sqlc/internal/ext"
+	"github.com/boba-keyost/sqlc/internal/ext/process"
+	"github.com/boba-keyost/sqlc/internal/ext/wasm"
+	"github.com/boba-keyost/sqlc/internal/info"
+	"github.com/boba-keyost/sqlc/internal/multierr"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/remote"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
 )
 
 const errMessageNoVersion = `The configuration file must have a version number.
@@ -178,28 +178,39 @@ func (g *generator) Pairs(ctx context.Context, conf *config.Config) []OutputPair
 	var pairs []OutputPair
 	for _, sql := range conf.SQL {
 		if sql.Gen.Go != nil {
-			pairs = append(pairs, OutputPair{
-				SQL: sql,
-				Gen: config.SQLGen{Go: sql.Gen.Go},
-			})
+			pairs = append(
+				pairs, OutputPair{
+					SQL: sql,
+					Gen: config.SQLGen{Go: sql.Gen.Go},
+				},
+			)
 		}
 		if sql.Gen.JSON != nil {
-			pairs = append(pairs, OutputPair{
-				SQL: sql,
-				Gen: config.SQLGen{JSON: sql.Gen.JSON},
-			})
+			pairs = append(
+				pairs, OutputPair{
+					SQL: sql,
+					Gen: config.SQLGen{JSON: sql.Gen.JSON},
+				},
+			)
 		}
 		for i := range sql.Codegen {
-			pairs = append(pairs, OutputPair{
-				SQL:    sql,
-				Plugin: &sql.Codegen[i],
-			})
+			pairs = append(
+				pairs, OutputPair{
+					SQL:    sql,
+					Plugin: &sql.Codegen[i],
+				},
+			)
 		}
 	}
 	return pairs
 }
 
-func (g *generator) ProcessResult(ctx context.Context, combo config.CombinedSettings, sql OutputPair, result *compiler.Result) error {
+func (g *generator) ProcessResult(
+	ctx context.Context,
+	combo config.CombinedSettings,
+	sql OutputPair,
+	result *compiler.Result,
+) error {
 	out, resp, err := codegen(ctx, combo, sql, result)
 	if err != nil {
 		return err
@@ -230,7 +241,13 @@ func (g *generator) ProcessResult(ctx context.Context, combo config.CombinedSett
 	return nil
 }
 
-func remoteGenerate(ctx context.Context, configPath string, conf *config.Config, dir string, stderr io.Writer) (map[string]string, error) {
+func remoteGenerate(
+	ctx context.Context,
+	configPath string,
+	conf *config.Config,
+	dir string,
+	stderr io.Writer,
+) (map[string]string, error) {
 	rpcClient, err := remote.NewClient(conf.Cloud)
 	if err != nil {
 		fmt.Fprintf(stderr, "error creating rpc client: %s\n", err)
@@ -293,7 +310,14 @@ func remoteGenerate(ctx context.Context, configPath string, conf *config.Config,
 	return output, nil
 }
 
-func parse(ctx context.Context, name, dir string, sql config.SQL, combo config.CombinedSettings, parserOpts opts.Parser, stderr io.Writer) (*compiler.Result, bool) {
+func parse(
+	ctx context.Context,
+	name, dir string,
+	sql config.SQL,
+	combo config.CombinedSettings,
+	parserOpts opts.Parser,
+	stderr io.Writer,
+) (*compiler.Result, bool) {
 	defer trace.StartRegion(ctx, "parse").End()
 	c, err := compiler.NewCompiler(sql, combo, parserOpts)
 	defer func() {
@@ -333,7 +357,11 @@ func parse(ctx context.Context, name, dir string, sql config.SQL, combo config.C
 	return c.Result(), false
 }
 
-func codegen(ctx context.Context, combo config.CombinedSettings, sql OutputPair, result *compiler.Result) (string, *plugin.GenerateResponse, error) {
+func codegen(ctx context.Context, combo config.CombinedSettings, sql OutputPair, result *compiler.Result) (
+	string,
+	*plugin.GenerateResponse,
+	error,
+) {
 	defer trace.StartRegion(ctx, "codegen").End()
 	req := codeGenRequest(result, combo)
 	var handler grpc.ClientConnInterface

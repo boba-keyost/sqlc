@@ -11,8 +11,8 @@ import (
 	driver "github.com/pingcap/tidb/pkg/parser/test_driver"
 	"github.com/pingcap/tidb/pkg/parser/types"
 
-	"github.com/sqlc-dev/sqlc/internal/debug"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/debug"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
 )
 
 type cc struct {
@@ -44,49 +44,61 @@ func (c *cc) convertAlterTableStmt(n *pcast.AlterTableStmt) ast.Node {
 		case pcast.AlterTableAddColumns:
 			for _, def := range spec.NewColumns {
 				name := def.Name.String()
-				alt.Cmds.Items = append(alt.Cmds.Items, &ast.AlterTableCmd{
-					Name:    &name,
-					Subtype: ast.AT_AddColumn,
-					Def:     convertColumnDef(def),
-				})
+				alt.Cmds.Items = append(
+					alt.Cmds.Items, &ast.AlterTableCmd{
+						Name:    &name,
+						Subtype: ast.AT_AddColumn,
+						Def:     convertColumnDef(def),
+					},
+				)
 			}
 
 		case pcast.AlterTableDropColumn:
 			name := spec.OldColumnName.String()
-			alt.Cmds.Items = append(alt.Cmds.Items, &ast.AlterTableCmd{
-				Name:      &name,
-				Subtype:   ast.AT_DropColumn,
-				MissingOk: spec.IfExists,
-			})
+			alt.Cmds.Items = append(
+				alt.Cmds.Items, &ast.AlterTableCmd{
+					Name:      &name,
+					Subtype:   ast.AT_DropColumn,
+					MissingOk: spec.IfExists,
+				},
+			)
 
 		case pcast.AlterTableChangeColumn:
 			oldName := spec.OldColumnName.String()
-			alt.Cmds.Items = append(alt.Cmds.Items, &ast.AlterTableCmd{
-				Name:    &oldName,
-				Subtype: ast.AT_DropColumn,
-			})
+			alt.Cmds.Items = append(
+				alt.Cmds.Items, &ast.AlterTableCmd{
+					Name:    &oldName,
+					Subtype: ast.AT_DropColumn,
+				},
+			)
 
 			for _, def := range spec.NewColumns {
 				name := def.Name.String()
-				alt.Cmds.Items = append(alt.Cmds.Items, &ast.AlterTableCmd{
-					Name:    &name,
-					Subtype: ast.AT_AddColumn,
-					Def:     convertColumnDef(def),
-				})
+				alt.Cmds.Items = append(
+					alt.Cmds.Items, &ast.AlterTableCmd{
+						Name:    &name,
+						Subtype: ast.AT_AddColumn,
+						Def:     convertColumnDef(def),
+					},
+				)
 			}
 
 		case pcast.AlterTableModifyColumn:
 			for _, def := range spec.NewColumns {
 				name := def.Name.String()
-				alt.Cmds.Items = append(alt.Cmds.Items, &ast.AlterTableCmd{
-					Name:    &name,
-					Subtype: ast.AT_DropColumn,
-				})
-				alt.Cmds.Items = append(alt.Cmds.Items, &ast.AlterTableCmd{
-					Name:    &name,
-					Subtype: ast.AT_AddColumn,
-					Def:     convertColumnDef(def),
-				})
+				alt.Cmds.Items = append(
+					alt.Cmds.Items, &ast.AlterTableCmd{
+						Name:    &name,
+						Subtype: ast.AT_DropColumn,
+					},
+				)
+				alt.Cmds.Items = append(
+					alt.Cmds.Items, &ast.AlterTableCmd{
+						Name:    &name,
+						Subtype: ast.AT_AddColumn,
+						Def:     convertColumnDef(def),
+					},
+				)
 			}
 
 		case pcast.AlterTableAlterColumn:
@@ -242,9 +254,11 @@ func convertColumnDef(def *pcast.ColumnDef) *ast.ColumnDef {
 	if len(def.Tp.GetElems()) > 0 {
 		vals = &ast.List{}
 		for i := range def.Tp.GetElems() {
-			vals.Items = append(vals.Items, &ast.String{
-				Str: def.Tp.GetElems()[i],
-			})
+			vals.Items = append(
+				vals.Items, &ast.String{
+					Str: def.Tp.GetElems()[i],
+				},
+			)
 		}
 	}
 	comment := ""
@@ -320,9 +334,11 @@ func (c *cc) convertColumnNames(cols []*pcast.ColumnName) *ast.List {
 	list := &ast.List{Items: []ast.Node{}}
 	for i := range cols {
 		name := identifier(cols[i].Name.String())
-		list.Items = append(list.Items, &ast.ResTarget{
-			Name: &name,
-		})
+		list.Items = append(
+			list.Items, &ast.ResTarget{
+				Name: &name,
+			},
+		)
 	}
 	return list
 }
@@ -350,9 +366,11 @@ func (c *cc) convertDeleteStmt(n *pcast.DeleteStmt) *ast.DeleteStmt {
 			}
 			items = append(items, NewIdentifier(table.Name.String()))
 			items = append(items, &ast.A_Star{})
-			targets.Items = append(targets.Items, &ast.ColumnRef{
-				Fields: &ast.List{Items: items},
-			})
+			targets.Items = append(
+				targets.Items, &ast.ColumnRef{
+					Fields: &ast.List{Items: items},
+				},
+			)
 		}
 		stmt.Targets = targets
 
@@ -390,10 +408,12 @@ func (c *cc) convertDropTableStmt(n *pcast.DropTableStmt) ast.Node {
 func (c *cc) convertRenameTableStmt(n *pcast.RenameTableStmt) ast.Node {
 	list := &ast.List{Items: []ast.Node{}}
 	for _, table := range n.TableToTables {
-		list.Items = append(list.Items, &ast.RenameTableStmt{
-			Table:   parseTableName(table.OldTable),
-			NewName: &parseTableName(table.NewTable).Name,
-		})
+		list.Items = append(
+			list.Items, &ast.RenameTableStmt{
+				Table:   parseTableName(table.OldTable),
+				NewName: &parseTableName(table.NewTable).Name,
+			},
+		)
 	}
 	return list
 }
@@ -1099,14 +1119,16 @@ func (c *cc) convertJoin(n *pcast.Join) *ast.List {
 		}
 
 		return &ast.List{
-			Items: []ast.Node{&ast.JoinExpr{
-				Jointype:    joinType,
-				IsNatural:   n.NaturalJoin,
-				Larg:        c.convert(n.Left),
-				Rarg:        c.convert(n.Right),
-				UsingClause: usingClause,
-				Quals:       c.convert(n.On),
-			}},
+			Items: []ast.Node{
+				&ast.JoinExpr{
+					Jointype:    joinType,
+					IsNatural:   n.NaturalJoin,
+					Larg:        c.convert(n.Left),
+					Rarg:        c.convert(n.Right),
+					UsingClause: usingClause,
+					Quals:       c.convert(n.On),
+				},
+			},
 		}
 	}
 	var tables []ast.Node
@@ -1632,10 +1654,12 @@ func (c *cc) convertProcedureInfo(n *pcast.ProcedureInfo) ast.Node {
 	var params ast.List
 	for _, sp := range n.ProcedureParam {
 		paramName := sp.ParamName
-		params.Items = append(params.Items, &ast.FuncParam{
-			Name: &paramName,
-			Type: &ast.TypeName{Name: types.TypeToStr(sp.ParamType.GetType(), sp.ParamType.GetCharset())},
-		})
+		params.Items = append(
+			params.Items, &ast.FuncParam{
+				Name: &paramName,
+				Type: &ast.TypeName{Name: types.TypeToStr(sp.ParamType.GetType(), sp.ParamType.GetCharset())},
+			},
+		)
 	}
 	return &ast.CreateFunctionStmt{
 		Params: &params,

@@ -11,10 +11,10 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	migrate "github.com/sqlc-dev/sqlc/internal/migrations"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/docker"
-	"github.com/sqlc-dev/sqlc/internal/sqltest/native"
+	migrate "github.com/boba-keyost/sqlc/internal/migrations"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/sqltest/docker"
+	"github.com/boba-keyost/sqlc/internal/sqltest/native"
 )
 
 var mysqlSync sync.Once
@@ -44,13 +44,15 @@ func MySQL(t *testing.T, migrations []string) string {
 		}
 	}
 
-	mysqlSync.Do(func() {
-		db, err := sql.Open("mysql", dburi)
-		if err != nil {
-			t.Fatal(err)
-		}
-		mysqlPool = db
-	})
+	mysqlSync.Do(
+		func() {
+			db, err := sql.Open("mysql", dburi)
+			if err != nil {
+				t.Fatal(err)
+			}
+			mysqlPool = db
+		},
+	)
 
 	if mysqlPool == nil {
 		t.Fatalf("MySQL pool creation failed")
@@ -84,11 +86,13 @@ func MySQL(t *testing.T, migrations []string) string {
 
 	dropQuery := fmt.Sprintf("DROP DATABASE `%s`", name)
 
-	t.Cleanup(func() {
-		if _, err := mysqlPool.ExecContext(ctx, dropQuery); err != nil {
-			t.Fatal(err)
-		}
-	})
+	t.Cleanup(
+		func() {
+			if _, err := mysqlPool.ExecContext(ctx, dropQuery); err != nil {
+				t.Fatal(err)
+			}
+		},
+	)
 
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {

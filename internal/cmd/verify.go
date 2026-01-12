@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/dbmanager"
-	"github.com/sqlc-dev/sqlc/internal/migrations"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
-	"github.com/sqlc-dev/sqlc/internal/quickdb"
-	pb "github.com/sqlc-dev/sqlc/internal/quickdb/v1"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlpath"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/dbmanager"
+	"github.com/boba-keyost/sqlc/internal/migrations"
+	"github.com/boba-keyost/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/quickdb"
+	pb "github.com/boba-keyost/sqlc/internal/quickdb/v1"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlpath"
 )
 
 func init() {
@@ -64,9 +64,11 @@ func Verify(ctx context.Context, dir, filename string, opts *Options) error {
 
 	// Get query sets from a previous archive by tag. If no tag is provided, get
 	// the latest query sets.
-	previous, err := client.GetQuerySets(ctx, &pb.GetQuerySetsRequest{
-		Tag: opts.Against,
-	})
+	previous, err := client.GetQuerySets(
+		ctx, &pb.GetQuerySetsRequest{
+			Tag: opts.Against,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -111,10 +113,12 @@ func Verify(ctx context.Context, dir, filename string, opts *Options) error {
 			}
 
 			// Create (or re-use) a database to verify against
-			resp, err := manager.CreateDatabase(ctx, &dbmanager.CreateDatabaseRequest{
-				Engine:     string(current.Engine),
-				Migrations: ddl,
-			})
+			resp, err := manager.CreateDatabase(
+				ctx, &dbmanager.CreateDatabaseRequest{
+					Engine:     string(current.Engine),
+					Migrations: ddl,
+				},
+			)
 			if err != nil {
 				return err
 			}

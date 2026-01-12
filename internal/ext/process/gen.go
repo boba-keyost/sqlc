@@ -15,13 +15,13 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/sqlc-dev/sqlc/internal/info"
+	"github.com/boba-keyost/sqlc/internal/info"
 )
 
 type Runner struct {
-	Cmd    string
+	Cmd string
 	Format string
-	Env    []string
+	Env []string
 }
 
 func (r *Runner) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) error {
@@ -100,6 +100,11 @@ func (r *Runner) Invoke(ctx context.Context, method string, args any, reply any,
 	return nil
 }
 
-func (r *Runner) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+func (r *Runner) NewStream(
+	ctx context.Context,
+	desc *grpc.StreamDesc,
+	method string,
+	opts ...grpc.CallOption,
+) (grpc.ClientStream, error) {
 	return nil, status.Error(codes.Unimplemented, "")
 }

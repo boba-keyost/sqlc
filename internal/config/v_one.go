@@ -7,7 +7,7 @@ import (
 
 	yaml "gopkg.in/yaml.v3"
 
-	golang "github.com/sqlc-dev/sqlc/internal/codegen/golang/opts"
+	golang "github.com/boba-keyost/sqlc/internal/codegen/golang/opts"
 )
 
 type V1GenerateSettings struct {
@@ -127,52 +127,54 @@ func (c *V1GenerateSettings) Translate() Config {
 			defaultValue := true
 			pkg.StrictOrderBy = &defaultValue
 		}
-		conf.SQL = append(conf.SQL, SQL{
-			Name:     pkg.Name,
-			Engine:   pkg.Engine,
-			Database: pkg.Database,
-			Schema:   pkg.Schema,
-			Queries:  pkg.Queries,
-			Rules:    pkg.Rules,
-			Analyzer: pkg.Analyzer,
-			Gen: SQLGen{
-				Go: &golang.Options{
-					EmitInterface:             pkg.EmitInterface,
-					EmitJsonTags:              pkg.EmitJSONTags,
-					JsonTagsIdUppercase:       pkg.JsonTagsIDUppercase,
-					EmitDbTags:                pkg.EmitDBTags,
-					EmitPreparedQueries:       pkg.EmitPreparedQueries,
-					EmitExactTableNames:       pkg.EmitExactTableNames,
-					EmitEmptySlices:           pkg.EmitEmptySlices,
-					EmitExportedQueries:       pkg.EmitExportedQueries,
-					EmitResultStructPointers:  pkg.EmitResultStructPointers,
-					EmitParamsStructPointers:  pkg.EmitParamsStructPointers,
-					EmitMethodsWithDbArgument: pkg.EmitMethodsWithDBArgument,
-					EmitPointersForNullTypes:  pkg.EmitPointersForNullTypes,
-					EmitEnumValidMethod:       pkg.EmitEnumValidMethod,
-					EmitAllEnumValues:         pkg.EmitAllEnumValues,
-					EmitSqlAsComment:          pkg.EmitSqlAsComment,
-					Package:                   pkg.Name,
-					Out:                       pkg.Path,
-					SqlPackage:                pkg.SQLPackage,
-					SqlDriver:                 pkg.SQLDriver,
-					Overrides:                 pkg.Overrides,
-					JsonTagsCaseStyle:         pkg.JSONTagsCaseStyle,
-					OutputBatchFileName:       pkg.OutputBatchFileName,
-					OutputDbFileName:          pkg.OutputDBFileName,
-					OutputModelsFileName:      pkg.OutputModelsFileName,
-					OutputQuerierFileName:     pkg.OutputQuerierFileName,
-					OutputCopyfromFileName:    pkg.OutputCopyFromFileName,
-					OutputFilesSuffix:         pkg.OutputFilesSuffix,
-					QueryParameterLimit:       pkg.QueryParameterLimit,
-					OmitSqlcVersion:           pkg.OmitSqlcVersion,
-					OmitUnusedStructs:         pkg.OmitUnusedStructs,
-					BuildTags:                 pkg.BuildTags,
+		conf.SQL = append(
+			conf.SQL, SQL{
+				Name:     pkg.Name,
+				Engine:   pkg.Engine,
+				Database: pkg.Database,
+				Schema:   pkg.Schema,
+				Queries:  pkg.Queries,
+				Rules:    pkg.Rules,
+				Analyzer: pkg.Analyzer,
+				Gen: SQLGen{
+					Go: &golang.Options{
+						EmitInterface:             pkg.EmitInterface,
+						EmitJsonTags:              pkg.EmitJSONTags,
+						JsonTagsIdUppercase:       pkg.JsonTagsIDUppercase,
+						EmitDbTags:                pkg.EmitDBTags,
+						EmitPreparedQueries:       pkg.EmitPreparedQueries,
+						EmitExactTableNames:       pkg.EmitExactTableNames,
+						EmitEmptySlices:           pkg.EmitEmptySlices,
+						EmitExportedQueries:       pkg.EmitExportedQueries,
+						EmitResultStructPointers:  pkg.EmitResultStructPointers,
+						EmitParamsStructPointers:  pkg.EmitParamsStructPointers,
+						EmitMethodsWithDbArgument: pkg.EmitMethodsWithDBArgument,
+						EmitPointersForNullTypes:  pkg.EmitPointersForNullTypes,
+						EmitEnumValidMethod:       pkg.EmitEnumValidMethod,
+						EmitAllEnumValues:         pkg.EmitAllEnumValues,
+						EmitSqlAsComment:          pkg.EmitSqlAsComment,
+						Package:                   pkg.Name,
+						Out:                       pkg.Path,
+						SqlPackage:                pkg.SQLPackage,
+						SqlDriver:                 pkg.SQLDriver,
+						Overrides:                 pkg.Overrides,
+						JsonTagsCaseStyle:         pkg.JSONTagsCaseStyle,
+						OutputBatchFileName:       pkg.OutputBatchFileName,
+						OutputDbFileName:          pkg.OutputDBFileName,
+						OutputModelsFileName:      pkg.OutputModelsFileName,
+						OutputQuerierFileName:     pkg.OutputQuerierFileName,
+						OutputCopyfromFileName:    pkg.OutputCopyFromFileName,
+						OutputFilesSuffix:         pkg.OutputFilesSuffix,
+						QueryParameterLimit:       pkg.QueryParameterLimit,
+						OmitSqlcVersion:           pkg.OmitSqlcVersion,
+						OmitUnusedStructs:         pkg.OmitUnusedStructs,
+						BuildTags:                 pkg.BuildTags,
+					},
 				},
+				StrictFunctionChecks: pkg.StrictFunctionChecks,
+				StrictOrderBy:        pkg.StrictOrderBy,
 			},
-			StrictFunctionChecks: pkg.StrictFunctionChecks,
-			StrictOrderBy:        pkg.StrictOrderBy,
-		})
+		)
 	}
 
 	if len(c.Overrides) > 0 || len(c.Rename) > 0 {

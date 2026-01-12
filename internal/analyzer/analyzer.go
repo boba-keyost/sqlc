@@ -11,12 +11,12 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/sqlc-dev/sqlc/internal/analysis"
-	"github.com/sqlc-dev/sqlc/internal/cache"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/info"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/named"
+	"github.com/boba-keyost/sqlc/internal/analysis"
+	"github.com/boba-keyost/sqlc/internal/cache"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/info"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/named"
 )
 
 type CachedAnalyzer struct {
@@ -36,7 +36,13 @@ func Cached(a Analyzer, c config.Config, db config.Database) *CachedAnalyzer {
 
 // Create a new error here
 
-func (c *CachedAnalyzer) Analyze(ctx context.Context, n ast.Node, q string, schema []string, np *named.ParamSet) (*analysis.Analysis, error) {
+func (c *CachedAnalyzer) Analyze(
+	ctx context.Context,
+	n ast.Node,
+	q string,
+	schema []string,
+	np *named.ParamSet,
+) (*analysis.Analysis, error) {
 	result, rerun, err := c.analyze(ctx, n, q, schema, np)
 	if rerun {
 		if err != nil {
@@ -47,7 +53,13 @@ func (c *CachedAnalyzer) Analyze(ctx context.Context, n ast.Node, q string, sche
 	return result, err
 }
 
-func (c *CachedAnalyzer) analyze(ctx context.Context, n ast.Node, q string, schema []string, np *named.ParamSet) (*analysis.Analysis, bool, error) {
+func (c *CachedAnalyzer) analyze(
+	ctx context.Context,
+	n ast.Node,
+	q string,
+	schema []string,
+	np *named.ParamSet,
+) (*analysis.Analysis, bool, error) {
 	// Only cache queries for managed databases. We can't be certain the
 	// database is in an unchanged state otherwise
 	if !c.db.Managed {

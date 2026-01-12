@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/sqlc-dev/sqlc/internal/debug"
-	"github.com/sqlc-dev/sqlc/internal/engine/sqlite/parser"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/debug"
+	"github.com/boba-keyost/sqlc/internal/engine/sqlite/parser"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
 )
 
 type cc struct {
@@ -68,17 +68,19 @@ func (c *cc) convertAlter_table_stmtContext(n *parser.Alter_table_stmtContext) a
 				Cmds:  &ast.List{},
 			}
 			name := def.Column_name().GetText()
-			stmt.Cmds.Items = append(stmt.Cmds.Items, &ast.AlterTableCmd{
-				Name:    &name,
-				Subtype: ast.AT_AddColumn,
-				Def: &ast.ColumnDef{
-					Colname: name,
-					TypeName: &ast.TypeName{
-						Name: def.Type_name().GetText(),
+			stmt.Cmds.Items = append(
+				stmt.Cmds.Items, &ast.AlterTableCmd{
+					Name:    &name,
+					Subtype: ast.AT_AddColumn,
+					Def: &ast.ColumnDef{
+						Colname: name,
+						TypeName: &ast.TypeName{
+							Name: def.Type_name().GetText(),
+						},
+						IsNotNull: hasNotNullConstraint(def.AllColumn_constraint()),
 					},
-					IsNotNull: hasNotNullConstraint(def.AllColumn_constraint()),
 				},
-			})
+			)
 			return stmt
 		}
 	}
@@ -89,10 +91,12 @@ func (c *cc) convertAlter_table_stmtContext(n *parser.Alter_table_stmtContext) a
 			Cmds:  &ast.List{},
 		}
 		name := n.Column_name(0).GetText()
-		stmt.Cmds.Items = append(stmt.Cmds.Items, &ast.AlterTableCmd{
-			Name:    &name,
-			Subtype: ast.AT_DropColumn,
-		})
+		stmt.Cmds.Items = append(
+			stmt.Cmds.Items, &ast.AlterTableCmd{
+				Name:    &name,
+				Subtype: ast.AT_DropColumn,
+			},
+		)
 		return stmt
 	}
 
@@ -117,11 +121,13 @@ func (c *cc) convertCreate_table_stmtContext(n *parser.Create_table_stmtContext)
 			if def.Type_name() != nil {
 				typeName = def.Type_name().GetText()
 			}
-			stmt.Cols = append(stmt.Cols, &ast.ColumnDef{
-				Colname:   identifier(def.Column_name().GetText()),
-				IsNotNull: hasNotNullConstraint(def.AllColumn_constraint()),
-				TypeName:  &ast.TypeName{Name: typeName},
-			})
+			stmt.Cols = append(
+				stmt.Cols, &ast.ColumnDef{
+					Colname:   identifier(def.Column_name().GetText()),
+					IsNotNull: hasNotNullConstraint(def.AllColumn_constraint()),
+					TypeName:  &ast.TypeName{Name: typeName},
+				},
+			)
 		}
 	}
 	return stmt
@@ -159,12 +165,14 @@ func (c *cc) convertCreate_virtual_table_fts5(n *parser.Create_virtual_table_stm
 		}
 
 		if columnName != "" {
-			stmt.Cols = append(stmt.Cols, &ast.ColumnDef{
-				Colname: identifier(columnName),
-				// you can not specify any column constraints in fts5, so we pass them manually
-				IsNotNull: true,
-				TypeName:  &ast.TypeName{Name: "text"},
-			})
+			stmt.Cols = append(
+				stmt.Cols, &ast.ColumnDef{
+					Colname: identifier(columnName),
+					// you can not specify any column constraints in fts5, so we pass them manually
+					IsNotNull: true,
+					TypeName:  &ast.TypeName{Name: "text"},
+				},
+			)
 		}
 	}
 
@@ -383,13 +391,15 @@ func (c *cc) convertMultiSelect_stmtContext(n *parser.Select_stmtContext) ast.No
 			for _, col := range cte.AllColumn_name() {
 				cteCols.Items = append(cteCols.Items, NewIdentifier(col.GetText()))
 			}
-			ctes.Items = append(ctes.Items, &ast.CommonTableExpr{
-				Ctename:      &tableName,
-				Ctequery:     c.convert(cte.Select_stmt()),
-				Location:     cte.GetStart().GetStart(),
-				Cterecursive: recursive,
-				Ctecolnames:  &cteCols,
-			})
+			ctes.Items = append(
+				ctes.Items, &ast.CommonTableExpr{
+					Ctename:      &tableName,
+					Ctequery:     c.convert(cte.Select_stmt()),
+					Location:     cte.GetStart().GetStart(),
+					Cterecursive: recursive,
+					Ctecolnames:  &cteCols,
+				},
+			)
 		}
 	}
 
@@ -457,23 +467,27 @@ func (c *cc) convertMultiSelect_stmtContext(n *parser.Select_stmtContext) ast.No
 							}
 						}
 
-						orderBy.Items = append(orderBy.Items, &ast.SortBy{
-							Node:        c.convert(oterm.Expr()),
-							SortbyDir:   sortByDir,
-							SortbyNulls: sortByNulls,
-							UseOp:       &ast.List{},
-						})
+						orderBy.Items = append(
+							orderBy.Items, &ast.SortBy{
+								Node:        c.convert(oterm.Expr()),
+								SortbyDir:   sortByDir,
+								SortbyNulls: sortByNulls,
+								UseOp:       &ast.List{},
+							},
+						)
 					}
 				}
-				window.Items = append(window.Items, &ast.WindowDef{
-					Name:            &windowName,
-					PartitionClause: &partitionBy,
-					OrderClause:     &orderBy,
-					FrameOptions:    0, // todo
-					StartOffset:     &ast.TODO{},
-					EndOffset:       &ast.TODO{},
-					Location:        windowNameCtx.GetStart().GetStart(),
-				})
+				window.Items = append(
+					window.Items, &ast.WindowDef{
+						Name:            &windowName,
+						PartitionClause: &partitionBy,
+						OrderClause:     &orderBy,
+						FrameOptions:    0, // todo
+						StartOffset:     &ast.TODO{},
+						EndOffset:       &ast.TODO{},
+						Location:        windowNameCtx.GetStart().GetStart(),
+					},
+				)
 			}
 		}
 		sel := &ast.SelectStmt{
@@ -629,10 +643,12 @@ func (c *cc) convertOrderby_stmtContext(n parser.IOrder_by_stmtContext) ast.Node
 			if !ok {
 				continue
 			}
-			list.Items = append(list.Items, &ast.CaseExpr{
-				Xpr:      c.convert(term.Expr()),
-				Location: term.Expr().GetStart().GetStart(),
-			})
+			list.Items = append(
+				list.Items, &ast.CaseExpr{
+					Xpr:      c.convert(term.Expr()),
+					Location: term.Expr().GetStart().GetStart(),
+				},
+			)
 		}
 		return list
 	}
@@ -826,7 +842,7 @@ func (c *cc) convertUnaryExpr(n *parser.Expr_unaryContext) ast.Node {
 		if opCtx.MINUS() != nil {
 			// Negative number: -expr
 			return &ast.A_Expr{
-				Name: &ast.List{Items: []ast.Node{&ast.String{Str: "-"}}},
+				Name:  &ast.List{Items: []ast.Node{&ast.String{Str: "-"}}},
 				Rexpr: expr,
 			}
 		}
@@ -837,7 +853,7 @@ func (c *cc) convertUnaryExpr(n *parser.Expr_unaryContext) ast.Node {
 		if opCtx.TILDE() != nil {
 			// Bitwise NOT: ~expr
 			return &ast.A_Expr{
-				Name: &ast.List{Items: []ast.Node{&ast.String{Str: "~"}}},
+				Name:  &ast.List{Items: []ast.Node{&ast.String{Str: "~"}}},
 				Rexpr: expr,
 			}
 		}
@@ -935,23 +951,27 @@ func (c *cc) convertReturning_caluseContext(n parser.IReturning_clauseContext) *
 	}
 
 	for _, exp := range r.AllExpr() {
-		list.Items = append(list.Items, &ast.ResTarget{
-			Indirection: &ast.List{},
-			Val:         c.convert(exp),
-		})
+		list.Items = append(
+			list.Items, &ast.ResTarget{
+				Indirection: &ast.List{},
+				Val:         c.convert(exp),
+			},
+		)
 	}
 
 	for _, star := range r.AllSTAR() {
-		list.Items = append(list.Items, &ast.ResTarget{
-			Indirection: &ast.List{},
-			Val: &ast.ColumnRef{
-				Fields: &ast.List{
-					Items: []ast.Node{&ast.A_Star{}},
+		list.Items = append(
+			list.Items, &ast.ResTarget{
+				Indirection: &ast.List{},
+				Val: &ast.ColumnRef{
+					Fields: &ast.List{
+						Items: []ast.Node{&ast.A_Star{}},
+					},
+					Location: star.GetSymbol().GetStart(),
 				},
 				Location: star.GetSymbol().GetStart(),
 			},
-			Location: star.GetSymbol().GetStart(),
-		})
+		)
 	}
 
 	return list
@@ -1038,9 +1058,11 @@ func (c *cc) convertColumnNames(cols []parser.IColumn_nameContext) *ast.List {
 	list := &ast.List{Items: []ast.Node{}}
 	for _, c := range cols {
 		name := identifier(c.GetText())
-		list.Items = append(list.Items, &ast.ResTarget{
-			Name: &name,
-		})
+		list.Items = append(
+			list.Items, &ast.ResTarget{
+				Name: &name,
+			},
+		)
 	}
 	return list
 }
@@ -1201,9 +1223,11 @@ func (c *cc) convertCastExpr(n *parser.Expr_castContext) ast.Node {
 		Arg: c.convert(n.Expr()),
 		TypeName: &ast.TypeName{
 			Name: name,
-			Names: &ast.List{Items: []ast.Node{
-				NewIdentifier(name),
-			}},
+			Names: &ast.List{
+				Items: []ast.Node{
+					NewIdentifier(name),
+				},
+			},
 			ArrayBounds: &ast.List{},
 		},
 		Location: n.GetStart().GetStart(),
@@ -1232,10 +1256,12 @@ func (c *cc) convertCase(n *parser.Expr_caseContext) ast.Node {
 		es = es[1:]
 	}
 	for i := 0; i < len(es); i += 2 {
-		e.Args.Items = append(e.Args.Items, &ast.CaseWhen{
-			Expr:   c.convert(es[i+0]),
-			Result: c.convert(es[i+1]),
-		})
+		e.Args.Items = append(
+			e.Args.Items, &ast.CaseWhen{
+				Expr:   c.convert(es[i+0]),
+				Result: c.convert(es[i+1]),
+			},
+		)
 	}
 	return e
 }

@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
-	"github.com/sqlc-dev/sqlc/internal/sql/format"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/sql/format"
 )
 
 // Parser is an interface for SQL parsers that can parse SQL into AST statements.
@@ -156,7 +156,11 @@ func (e *Expander) expandSelectStmtInner(ctx context.Context, stmt *ast.SelectSt
 }
 
 // getCTEColumnNames gets the column names for a CTE by constructing a query with proper context
-func (e *Expander) getCTEColumnNames(ctx context.Context, stmt *ast.SelectStmt, targetCTE *ast.CommonTableExpr) ([]string, error) {
+func (e *Expander) getCTEColumnNames(
+	ctx context.Context,
+	stmt *ast.SelectStmt,
+	targetCTE *ast.CommonTableExpr,
+) ([]string, error) {
 	// Build a temporary query: WITH <all CTEs up to and including target> SELECT * FROM <targetCTE>
 	var ctesToInclude []ast.Node
 	for _, cteNode := range stmt.WithClause.Ctes.Items {
@@ -175,7 +179,7 @@ func (e *Expander) getCTEColumnNames(ctx context.Context, stmt *ast.SelectStmt, 
 
 	tempStmt := &ast.SelectStmt{
 		WithClause: &ast.WithClause{
-			Ctes:      &ast.List{Items: ctesToInclude},
+			Ctes: &ast.List{Items: ctesToInclude},
 			Recursive: stmt.WithClause.Recursive,
 		},
 		TargetList: &ast.List{
@@ -314,10 +318,12 @@ func hasStarAnywhere(node ast.Node) bool {
 		return false
 	}
 	// Use astutils.Search to find any A_Star node in the AST
-	stars := astutils.Search(node, func(n ast.Node) bool {
-		_, ok := n.(*ast.A_Star)
-		return ok
-	})
+	stars := astutils.Search(
+		node, func(n ast.Node) bool {
+			_, ok := n.(*ast.A_Star)
+			return ok
+		},
+	)
 	return len(stars.Items) > 0
 }
 
@@ -327,10 +333,12 @@ func hasStarInList(targets *ast.List) bool {
 		return false
 	}
 	// Use astutils.Search to find any A_Star node in the target list
-	stars := astutils.Search(targets, func(n ast.Node) bool {
-		_, ok := n.(*ast.A_Star)
-		return ok
-	})
+	stars := astutils.Search(
+		targets, func(n ast.Node) bool {
+			_, ok := n.(*ast.A_Star)
+			return ok
+		},
+	)
 	return len(stars.Items) > 0
 }
 

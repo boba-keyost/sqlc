@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/astutils"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/astutils"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 func ParamRef(n ast.Node) (map[int]bool, bool, error) {
@@ -14,18 +14,22 @@ func ParamRef(n ast.Node) (map[int]bool, bool, error) {
 	var dollar bool
 	var nodollar bool
 	// Find all parameter references
-	astutils.Walk(astutils.VisitorFunc(func(node ast.Node) {
-		switch n := node.(type) {
-		case *ast.ParamRef:
-			ref := node.(*ast.ParamRef)
-			if ref.Dollar {
-				dollar = true
-			} else {
-				nodollar = true
-			}
-			allrefs = append(allrefs, n)
-		}
-	}), n)
+	astutils.Walk(
+		astutils.VisitorFunc(
+			func(node ast.Node) {
+				switch n := node.(type) {
+				case *ast.ParamRef:
+					ref := node.(*ast.ParamRef)
+					if ref.Dollar {
+						dollar = true
+					} else {
+						nodollar = true
+					}
+					allrefs = append(allrefs, n)
+				}
+			},
+		), n,
+	)
 	if dollar && nodollar {
 		return nil, false, errors.New("can not mix $1 format with ? format")
 	}

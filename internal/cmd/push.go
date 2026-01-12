@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sqlc-dev/sqlc/internal/bundler"
-	"github.com/sqlc-dev/sqlc/internal/compiler"
-	"github.com/sqlc-dev/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/bundler"
+	"github.com/boba-keyost/sqlc/internal/compiler"
+	"github.com/boba-keyost/sqlc/internal/config"
 )
 
 func init() {
@@ -49,22 +49,31 @@ type pusher struct {
 func (g *pusher) Pairs(ctx context.Context, conf *config.Config) []OutputPair {
 	var pairs []OutputPair
 	for _, sql := range conf.SQL {
-		pairs = append(pairs, OutputPair{
-			SQL: sql,
-		})
+		pairs = append(
+			pairs, OutputPair{
+				SQL: sql,
+			},
+		)
 	}
 	return pairs
 }
 
-func (g *pusher) ProcessResult(ctx context.Context, combo config.CombinedSettings, sql OutputPair, result *compiler.Result) error {
+func (g *pusher) ProcessResult(
+	ctx context.Context,
+	combo config.CombinedSettings,
+	sql OutputPair,
+	result *compiler.Result,
+) error {
 	req := codeGenRequest(result, combo)
 	g.m.Lock()
-	g.results = append(g.results, &bundler.QuerySetArchive{
-		Name:    sql.Name,
-		Schema:  sql.Schema,
-		Queries: sql.Queries,
-		Request: req,
-	})
+	g.results = append(
+		g.results, &bundler.QuerySetArchive{
+			Name:    sql.Name,
+			Schema:  sql.Schema,
+			Queries: sql.Queries,
+			Request: req,
+		},
+	)
 	g.m.Unlock()
 	return nil
 }

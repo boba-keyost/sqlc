@@ -9,14 +9,14 @@ import (
 	"github.com/ncruces/go-sqlite3"
 	_ "github.com/ncruces/go-sqlite3/embed"
 
-	core "github.com/sqlc-dev/sqlc/internal/analysis"
-	"github.com/sqlc-dev/sqlc/internal/config"
-	"github.com/sqlc-dev/sqlc/internal/opts"
-	"github.com/sqlc-dev/sqlc/internal/shfmt"
-	"github.com/sqlc-dev/sqlc/internal/sql/ast"
-	"github.com/sqlc-dev/sqlc/internal/sql/catalog"
-	"github.com/sqlc-dev/sqlc/internal/sql/named"
-	"github.com/sqlc-dev/sqlc/internal/sql/sqlerr"
+	core "github.com/boba-keyost/sqlc/internal/analysis"
+	"github.com/boba-keyost/sqlc/internal/config"
+	"github.com/boba-keyost/sqlc/internal/opts"
+	"github.com/boba-keyost/sqlc/internal/shfmt"
+	"github.com/boba-keyost/sqlc/internal/sql/ast"
+	"github.com/boba-keyost/sqlc/internal/sql/catalog"
+	"github.com/boba-keyost/sqlc/internal/sql/named"
+	"github.com/boba-keyost/sqlc/internal/sql/sqlerr"
 )
 
 type Analyzer struct {
@@ -35,7 +35,13 @@ func New(db config.Database) *Analyzer {
 	}
 }
 
-func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrations []string, ps *named.ParamSet) (*core.Analysis, error) {
+func (a *Analyzer) Analyze(
+	ctx context.Context,
+	n ast.Node,
+	query string,
+	migrations []string,
+	ps *named.ParamSet,
+) (*core.Analysis, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -137,14 +143,16 @@ func (a *Analyzer) Analyze(ctx context.Context, n ast.Node, query string, migrat
 			}
 		}
 
-		result.Params = append(result.Params, &core.Parameter{
-			Number: int32(i),
-			Column: &core.Column{
-				Name:     name,
-				DataType: "any",
-				NotNull:  false,
+		result.Params = append(
+			result.Params, &core.Parameter{
+				Number: int32(i),
+				Column: &core.Column{
+					Name:     name,
+					DataType: "any",
+					NotNull:  false,
+				},
 			},
-		})
+		)
 	}
 
 	return &result, nil
@@ -307,11 +315,13 @@ func (a *Analyzer) IntrospectSchema(ctx context.Context, schemas []string) (*cat
 			colType := pragmaStmt.ColumnText(2)
 			notNull := pragmaStmt.ColumnInt(3) != 0
 
-			tbl.Columns = append(tbl.Columns, &catalog.Column{
-				Name:      colName,
-				Type:      ast.TypeName{Name: normalizeType(colType)},
-				IsNotNull: notNull,
-			})
+			tbl.Columns = append(
+				tbl.Columns, &catalog.Column{
+					Name:      colName,
+					Type:      ast.TypeName{Name: normalizeType(colType)},
+					IsNotNull: notNull,
+				},
+			)
 		}
 		pragmaStmt.Close()
 

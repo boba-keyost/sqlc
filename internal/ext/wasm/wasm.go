@@ -24,15 +24,15 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	"github.com/sqlc-dev/sqlc/internal/cache"
-	"github.com/sqlc-dev/sqlc/internal/info"
-	"github.com/sqlc-dev/sqlc/internal/plugin"
+	"github.com/boba-keyost/sqlc/internal/cache"
+	"github.com/boba-keyost/sqlc/internal/info"
+	"github.com/boba-keyost/sqlc/internal/plugin"
 )
 
 var flight singleflight.Group
 
 type runtimeAndCode struct {
-	rt   wazero.Runtime
+	rt wazero.Runtime
 	code wazero.CompiledModule
 }
 
@@ -46,7 +46,11 @@ func (r *Runner) getChecksum(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	slog.Warn("fetching WASM binary to calculate sha256. Set this value in sqlc.yaml to prevent unneeded work", "sha256", sum)
+	slog.Warn(
+		"fetching WASM binary to calculate sha256. Set this value in sqlc.yaml to prevent unneeded work",
+		"sha256",
+		sum,
+	)
 	return sum, nil
 }
 
@@ -59,9 +63,11 @@ func (r *Runner) loadAndCompile(ctx context.Context) (*runtimeAndCode, error) {
 	if err != nil {
 		return nil, err
 	}
-	value, err, _ := flight.Do(expected, func() (interface{}, error) {
-		return r.loadAndCompileWASM(ctx, cacheDir, expected)
-	})
+	value, err, _ := flight.Do(
+		expected, func() (interface{}, error) {
+			return r.loadAndCompileWASM(ctx, cacheDir, expected)
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +95,10 @@ func (r *Runner) fetch(ctx context.Context, uri string) ([]byte, string, error) 
 		if err != nil {
 			return nil, "", fmt.Errorf("http.Get: %s %w", uri, err)
 		}
-		req.Header.Set("User-Agent", fmt.Sprintf("sqlc/%s Go/%s (%s %s)", info.Version, runtime.Version(), runtime.GOOS, runtime.GOARCH))
+		req.Header.Set(
+			"User-Agent",
+			fmt.Sprintf("sqlc/%s Go/%s (%s %s)", info.Version, runtime.Version(), runtime.GOOS, runtime.GOARCH),
+		)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, "", fmt.Errorf("http.Get: %s %w", r.URL, err)
@@ -167,7 +176,7 @@ func (r *Runner) loadAndCompileWASM(ctx context.Context, cache string, expected 
 // removePGCatalog removes the pg_catalog schema from the request. There is a
 // mysterious (reason unknown) bug with wasm plugins when a large amount of
 // tables (like there are in the catalog) are sent.
-// @see https://github.com/sqlc-dev/sqlc/pull/1748
+// @see https://github.com/boba-keyost/sqlc/pull/1748
 func removePGCatalog(req *plugin.GenerateRequest) {
 	if req.Catalog == nil || req.Catalog.Schemas == nil {
 		return
@@ -244,7 +253,12 @@ func (r *Runner) Invoke(ctx context.Context, method string, args any, reply any,
 	return nil
 }
 
-func (r *Runner) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+func (r *Runner) NewStream(
+	ctx context.Context,
+	desc *grpc.StreamDesc,
+	method string,
+	opts ...grpc.CallOption,
+) (grpc.ClientStream, error) {
 	return nil, status.Error(codes.Unimplemented, "")
 }
 

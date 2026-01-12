@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/sqlc-dev/sqlc/internal/sqltest/local"
+	"github.com/boba-keyost/sqlc/internal/sqltest/local"
 )
 
 func TestAuthors(t *testing.T) {
@@ -31,10 +31,15 @@ func TestAuthors(t *testing.T) {
 	t.Log(authors)
 
 	// create an author
-	insertedAuthor, err := q.CreateAuthor(ctx, CreateAuthorParams{
-		Name: "Brian Kernighan",
-		Bio:  pgtype.Text{String: "Co-author of The C Programming Language and The Go Programming Language", Valid: true},
-	})
+	insertedAuthor, err := q.CreateAuthor(
+		ctx, CreateAuthorParams{
+			Name: "Brian Kernighan",
+			Bio:  pgtype.Text{
+				String: "Co-author of The C Programming Language and The Go Programming Language",
+				Valid: true,
+			},
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
